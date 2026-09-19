@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://s4yw6rfkfgto"]
+
+[ext_resource type="Script" uid="uid://bmmwtu2x6ev6v" path="res://entities/player/player.gd" id="1_abrql"]
+[ext_resource type="Shape2D" path="res://entities/player/player_shape.tres" id="2_sglur"]
+
+[node name="Player" type="CharacterBody2D" unique_id=1803391748]
+y_sort_enabled = true
+motion_mode = 1
+script = ExtResource("1_abrql")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1710187449]
+shape = ExtResource("2_sglur")
+
+[node name="Body" type="Polygon2D" parent="." unique_id=651277193]
+color = Color(0.24, 0.78, 0.94, 1)
+
+[node name="Camera" type="Camera2D" parent="." unique_id=1343227852]
+limit_left = 0
+limit_top = 0
+limit_right = 1280
+limit_bottom = 704
+position_smoothing_enabled = true
+position_smoothing_speed = 8.0

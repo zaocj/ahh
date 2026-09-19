@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://da4uvvnyottmp"]
+
+[ext_resource type="TileSet" uid="uid://c6ld5a8u3jxwq" path="res://maps/arena_01/arena_01_tileset.tres" id="1_umbjh"]
+[ext_resource type="Script" uid="uid://dv64l7vevxuus" path="res://maps/arena_01/terrain.gd" id="2_rj6x7"]
+
+[node name="Arena01" type="Node2D" unique_id=1918824252]
+y_sort_enabled = true
+
+[node name="Terrain" type="TileMapLayer" parent="." unique_id=192926136]
+y_sort_enabled = true
+tile_set = ExtResource("1_umbjh")
+script = ExtResource("2_rj6x7")
