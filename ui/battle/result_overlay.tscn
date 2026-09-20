@@ -1,0 +1,57 @@
+[gd_scene format=3 uid="uid://dileee4jxoqmw"]
+
+[ext_resource type="Script" path="res://ui/battle/result_overlay.gd" id="1_uv6b4"]
+[ext_resource type="Script" uid="uid://c2qhbehsusu12" path="res://ui/hud/action_button.gd" id="2_l7a5o"]
+
+[node name="ResultOverlay" type="Control" unique_id=599588995]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_uv6b4")
+
+[node name="Title" type="Label" parent="." unique_id=1093582335]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -104.0
+offset_right = 220.0
+offset_bottom = -52.0
+theme_override_font_sizes/font_size = 44
+text = "YOU WIN"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Reason" type="Label" parent="." unique_id=1967064999]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -44.0
+offset_right = 220.0
+offset_bottom = -4.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "All enemies destroyed."
+horizontal_alignment = 1
+
+[node name="Rematch" type="Control" parent="." unique_id=995685664]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -90.0
+offset_top = 32.0
+offset_right = 90.0
+offset_bottom = 92.0
+script = ExtResource("2_l7a5o")
+label = "Rematch"

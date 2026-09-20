@@ -1,11 +1,11 @@
-[gd_resource type="Resource" script_class="StatBlock2D" format=3]
+[gd_resource type="Resource" script_class="StatBlock2D" format=3 uid="uid://erspf75lrh6w"]
 
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/attributes/gameplay_attribute_set.gd" id="1_jub1o"]
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/attributes/gameplay_attribute.gd" id="2_qaog1"]
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/utilties/scalable_value.gd" id="3_u47kb"]
-[ext_resource type="Script" path="res://skills/two_d/stat_block_2d.gd" id="4_qbmhn"]
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/attributes/vitals/gameplay_vital.gd" id="5_b1cab"]
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/attributes/vitals/health_vital.gd" id="6_3v860"]
+[ext_resource type="Script" uid="uid://bkkqftstlq2s6" path="res://addons/godot_ability_system/scripts/attributes/gameplay_attribute_set.gd" id="1_jub1o"]
+[ext_resource type="Script" uid="uid://dj0iwc88r8noi" path="res://addons/godot_ability_system/scripts/attributes/gameplay_attribute.gd" id="2_qaog1"]
+[ext_resource type="Script" uid="uid://dd5tuhga1jg51" path="res://addons/godot_ability_system/scripts/utilties/scalable_value.gd" id="3_u47kb"]
+[ext_resource type="Script" uid="uid://yqa6hkcxsvmr" path="res://skills/two_d/stat_block_2d.gd" id="4_qbmhn"]
+[ext_resource type="Script" uid="uid://de4yqlfssv0xe" path="res://addons/godot_ability_system/scripts/attributes/vitals/gameplay_vital.gd" id="5_b1cab"]
+[ext_resource type="Script" uid="uid://b6k2lmhsmbn2c" path="res://addons/godot_ability_system/scripts/attributes/vitals/health_vital.gd" id="6_3v860"]
 
 [sub_resource type="Resource" id="Resource_h0xon"]
 script = ExtResource("2_qaog1")

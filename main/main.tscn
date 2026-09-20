@@ -4,10 +4,23 @@
 [ext_resource type="PackedScene" uid="uid://da4uvvnyottmp" path="res://maps/arena_01/arena_01.tscn" id="4_kfbq2"]
 [ext_resource type="PackedScene" uid="uid://s4yw6rfkfgto" path="res://entities/player/player.tscn" id="5_4dugh"]
 [ext_resource type="Script" uid="uid://bypqceqng7jru" path="res://ui/hud/virtual_joystick.gd" id="5_85g3d"]
-[ext_resource type="Script" path="res://ui/hud/skill_button.gd" id="6_skillbtn"]
-[ext_resource type="Script" path="res://ui/hud/action_button.gd" id="7_actionbtn"]
-[ext_resource type="Script" path="res://ui/hud/skill_drawer.gd" id="8_drawer"]
-[ext_resource type="PackedScene" path="res://entities/enemy/enemy.tscn" id="7_enemy"]
+[ext_resource type="PackedScene" uid="uid://dileee4jxoqmw" path="res://ui/battle/result_overlay.tscn" id="6_bsumw"]
+[ext_resource type="Script" uid="uid://c6h57yalq103q" path="res://ui/hud/skill_button.gd" id="6_skillbtn"]
+[ext_resource type="Script" uid="uid://c2qhbehsusu12" path="res://ui/hud/action_button.gd" id="7_actionbtn"]
+[ext_resource type="PackedScene" uid="uid://dbstgf8garopf" path="res://entities/enemy/enemy.tscn" id="7_enemy"]
+[ext_resource type="Script" uid="uid://cbuiwb16e2v3m" path="res://ui/hud/skill_drawer.gd" id="8_drawer"]
+[ext_resource type="Script" uid="uid://bfhp5l6r4k1su" path="res://core/battle/match_director.gd" id="9_grrlh"]
+[ext_resource type="Script" uid="uid://dovv5pycoiuvi" path="res://ui/battle/damage_numbers.gd" id="11_fwcvl"]
+[ext_resource type="Script" uid="uid://c58sffafbxyxc" path="res://ui/battle/combat_sfx.gd" id="12_na0o7"]
+[ext_resource type="PackedScene" uid="uid://pel4ogig2upj" path="res://ui/battle/damage_number.tscn" id="12_vapsy"]
+[ext_resource type="AudioStream" uid="uid://d3w46y54ony74" path="res://assets/audio/player_hit.wav" id="14_jofbb"]
+[ext_resource type="AudioStream" uid="uid://dy2ujujobn2ul" path="res://assets/audio/hit.wav" id="15_re7it"]
+[ext_resource type="AudioStream" uid="uid://dg6cee61brp0c" path="res://assets/audio/shoot.wav" id="16_oagth"]
+[ext_resource type="AudioStream" uid="uid://b1li53vylmlqa" path="res://assets/audio/dash.wav" id="17_n53tw"]
+[ext_resource type="AudioStream" uid="uid://jleeftby5bwj" path="res://assets/audio/death.wav" id="18_d00gp"]
+[ext_resource type="AudioStream" uid="uid://dhf0lpktps2kv" path="res://assets/audio/win.wav" id="19_d8vpj"]
+[ext_resource type="AudioStream" uid="uid://c3iao7cyd6s2g" path="res://assets/audio/lose.wav" id="20_qs5eo"]
+[ext_resource type="AudioStream" uid="uid://bh6808pl2t2ei" path="res://assets/audio/tick.wav" id="21_frbr6"]
 
 [node name="Main" type="Node2D" unique_id=750140780]
 y_sort_enabled = true
@@ -16,12 +29,13 @@ script = ExtResource("1_tbgi4")
 [node name="HUD" type="CanvasLayer" parent="." unique_id=445777602]
 
 [node name="Status" type="Label" parent="HUD" unique_id=2074144326]
-anchors_preset = 10
-anchor_right = 1.0
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
 offset_left = 24.0
-offset_top = 16.0
-offset_right = -24.0
-offset_bottom = 48.0
+offset_top = -304.0
+offset_right = 640.0
+offset_bottom = -272.0
 text = "WASD / Arrows or drag the joystick to move"
 
 [node name="Joystick" type="Control" parent="HUD" unique_id=285179161]
@@ -36,7 +50,7 @@ offset_bottom = -36.0
 grow_vertical = 0
 script = ExtResource("5_85g3d")
 
-[node name="SkillBullet" type="Control" parent="HUD"]
+[node name="SkillBullet" type="Control" parent="HUD" unique_id=1610858131]
 layout_mode = 3
 anchors_preset = 3
 anchor_left = 1.0
@@ -52,7 +66,7 @@ grow_vertical = 0
 script = ExtResource("6_skillbtn")
 button_color = Color(0.98, 0.72, 0.25, 1)
 
-[node name="SkillDash" type="Control" parent="HUD"]
+[node name="SkillDash" type="Control" parent="HUD" unique_id=131455741]
 layout_mode = 3
 anchors_preset = 3
 anchor_left = 1.0
@@ -68,7 +82,8 @@ grow_vertical = 0
 script = ExtResource("6_skillbtn")
 button_color = Color(0.42, 0.86, 0.55, 1)
 
-[node name="DrawerToggle" type="Control" parent="HUD"]
+[node name="DrawerToggle" type="Control" parent="HUD" unique_id=225321250]
+layout_mode = 3
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
@@ -81,20 +96,7 @@ script = ExtResource("7_actionbtn")
 label = "Skills"
 button_color = Color(0.62, 0.55, 0.85, 1)
 
-[node name="SpawnEnemy" type="Control" parent="HUD"]
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 300.0
-offset_top = -110.0
-offset_right = 480.0
-offset_bottom = -54.0
-grow_vertical = 0
-script = ExtResource("7_actionbtn")
-label = "Spawn Enemy"
-button_color = Color(0.85, 0.55, 0.4, 1)
-
-[node name="SkillDrawer" type="Control" parent="HUD"]
+[node name="SkillDrawer" type="Control" parent="HUD" unique_id=573867568]
 layout_mode = 3
 anchors_preset = 6
 anchor_left = 1.0
@@ -109,10 +111,63 @@ grow_horizontal = 0
 grow_vertical = 2
 script = ExtResource("8_drawer")
 
+[node name="Timer" type="Label" parent="HUD" unique_id=5283946]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -120.0
+offset_top = 12.0
+offset_right = 120.0
+offset_bottom = 52.0
+theme_override_font_sizes/font_size = 30
+text = "1:00"
+horizontal_alignment = 1
+
+[node name="Announce" type="Label" parent="HUD" unique_id=1120421684]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -260.0
+offset_right = 300.0
+offset_bottom = -120.0
+theme_override_colors/font_color = Color(1, 0.95, 0.55, 1)
+theme_override_font_sizes/font_size = 84
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ResultOverlay" parent="HUD" unique_id=599588995 instance=ExtResource("6_bsumw")]
+grow_horizontal = 2
+grow_vertical = 2
+
 [node name="Player" parent="." unique_id=1803391748 instance=ExtResource("5_4dugh")]
 position = Vector2(656, 368)
 
-[node name="Arena01" type="Node2D" parent="." unique_id=1918824252 instance=ExtResource("4_kfbq2")]
+[node name="Arena01" parent="." unique_id=1918824252 instance=ExtResource("4_kfbq2")]
 
-[node name="Enemy" parent="." instance=ExtResource("7_enemy")]
+[node name="Enemy" parent="." unique_id=673459040 instance=ExtResource("7_enemy")]
 position = Vector2(830, 260)
+speed = null
+target_group = null
+hit_flash_time = null
+
+[node name="MatchDirector" type="Node" parent="." unique_id=1756276473]
+script = ExtResource("9_grrlh")
+
+[node name="DamageNumbers" type="Node" parent="." unique_id=1100712103]
+script = ExtResource("11_fwcvl")
+number_scene = ExtResource("12_vapsy")
+
+[node name="CombatSfx" type="Node" parent="." unique_id=704666640]
+script = ExtResource("12_na0o7")
+player_hit_stream = ExtResource("14_jofbb")
+hit_stream = ExtResource("15_re7it")
+shoot_stream = ExtResource("16_oagth")
+dash_stream = ExtResource("17_n53tw")
+death_stream = ExtResource("18_d00gp")
+win_stream = ExtResource("19_d8vpj")
+lose_stream = ExtResource("20_qs5eo")
+draw_stream = ExtResource("21_frbr6")
+tick_stream = ExtResource("21_frbr6")

@@ -3,8 +3,15 @@ extends Control
 ## HUD skill button: tap to cast, hold and drag to aim.
 ##
 ## It only translates pointer events into positions relative to the button centre
-## and forwards them to SkillController - no skill logic lives here. Cooldown is
-## drawn as a dark pie over the button.
+## and forwards them to AbilityInputRouter - no skill logic lives here. Cooldown
+## is drawn as a dark pie over the button.
+##
+## Pointer ownership: exactly one pointer (a finger index, or the mouse) owns the
+## button between press and release, and only the owning pointer can press or
+## release it. A touch produces two events for one finger - the touch itself and
+## an emulated mouse event (project setting
+## input_devices/pointing/emulate_mouse_from_touch, on by default) - so without
+## ownership both would press and the ability would start previewing twice.
 
 signal pressed_at(position: Vector2)
 signal dragged_to(position: Vector2)
@@ -14,6 +21,12 @@ signal released_at(position: Vector2)
 signal cancelled
 
 const NO_POINTER: int = -1
+## The mouse is a pointer of its own, *not* NO_POINTER: while the button is held
+## by the mouse it must no longer count as "no pointer", otherwise the emulated
+## mouse event of a touch passes the guard below and presses twice. A second
+## press re-enters the ability preview, and since the preview strategy keeps only
+## its newest indicator the first one is orphaned on the map for good.
+const MOUSE_POINTER: int = -2
 
 @export var button_color: Color = Color(0.24, 0.78, 0.94)
 @export var label: String = ""
@@ -45,10 +58,11 @@ func _gui_input(event: InputEvent) -> void:
 				_pointer_id = NO_POINTER
 				cancelled.emit()
 			accept_event()
-		elif event.pressed and _pointer_id == NO_POINTER:
-			_press(event.index, event.position)
+		elif event.pressed:
+			if _pointer_id == NO_POINTER:
+				_press(event.index, event.position)
 			accept_event()
-		elif not event.pressed and event.index == _pointer_id:
+		elif event.index == _pointer_id:
 			_release(event.position)
 			accept_event()
 	elif event is InputEventScreenDrag:
@@ -58,13 +72,14 @@ func _gui_input(event: InputEvent) -> void:
 	elif event is InputEventMouseButton:
 		if event.button_index != MOUSE_BUTTON_LEFT:
 			return
-		if event.pressed and _pointer_id == NO_POINTER:
-			_press(NO_POINTER, event.position)
+		if event.pressed:
+			if _pointer_id == NO_POINTER:
+				_press(MOUSE_POINTER, event.position)
 			accept_event()
-		elif not event.pressed and _pointer_id == NO_POINTER:
+		elif _pointer_id == MOUSE_POINTER:
 			_release(event.position)
 			accept_event()
-	elif event is InputEventMouseMotion and _pointer_id == NO_POINTER:
+	elif event is InputEventMouseMotion and _pointer_id == MOUSE_POINTER:
 		dragged_to.emit(_centered(event.position))
 		accept_event()
 

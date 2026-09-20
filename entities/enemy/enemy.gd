@@ -51,6 +51,11 @@ func _ready() -> void:
 	_vitals.vital_depleted.connect(_on_vital_depleted)
 	_statuses.status_applied.connect(_on_status_applied)
 	_statuses.status_removed.connect(_on_status_removed)
+	# The vital's own signals carry the exact numbers, which is what hit feedback needs.
+	var vital := health()
+	if vital != null:
+		vital.damage_applied.connect(_on_damage_applied)
+		vital.health_depleted.connect(_on_health_depleted)
 
 func _physics_process(_delta: float) -> void:
 	# Frozen by the frost skill: rooted, but still a valid damage target.
@@ -68,6 +73,17 @@ func _physics_process(_delta: float) -> void:
 ## True while the frost status is on: the enemy cannot walk.
 func is_frozen() -> bool:
 	return _statuses.has_status(FREEZE_STATUS)
+
+## Entity contract used by MatchDirector: is this enemy still in the fight?
+## (A defeated enemy frees itself in `_on_vital_depleted`.)
+func is_alive() -> bool:
+	var vital := health()
+	return vital != null and vital.is_alive
+
+## Plugin interface hook, same convention as the player: lets the ability system
+## (and the AI router) find this entity's ability component by name.
+func get_gameplay_ability_component() -> GameplayAbilityComponent:
+	return $Abilities
 
 ## The plugin vital holding this enemy's hit points.
 func health() -> GameplayVital:
@@ -106,6 +122,12 @@ func _on_status_removed(status_id: StringName) -> void:
 func _on_vital_depleted(vital_id: StringName) -> void:
 	if vital_id == HEALTH_VITAL:
 		queue_free()
+
+func _on_damage_applied(damage_info: GameplayDamageInfo, final_damage: float) -> void:
+	CombatEvents.report_damage(self, final_damage, damage_info.instigator)
+
+func _on_health_depleted(instigator: Node) -> void:
+	CombatEvents.report_death(self, instigator)
 
 func _flash() -> void:
 	if is_frozen():

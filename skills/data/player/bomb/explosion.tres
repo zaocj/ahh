@@ -9,7 +9,7 @@
 script = ExtResource("4_dgowd")
 duration = 0.3
 tick_interval = 0.0
-radius = 90.0
+radius = 95.0
 color = Color(1, 0.55, 0.2, 0.3)
 field_scene = ExtResource("1_vnd8e")
 payload_effects = Array[ExtResource("2_uhjo4")]([ExtResource("3_2e87h")])

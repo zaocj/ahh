@@ -14,6 +14,10 @@ class_name AbilityNodeSpawnProjectile2D
 @export var spread_degrees: float = 0.0
 ## Blackboard/context key holding the aim direction (Vector2).
 @export var direction_key: String = "target_direction"
+## Blackboard/context key holding an absolute landing point (Vector2). When set and
+## present, the shot flies from the muzzle to that point instead of `max_distance`
+## - that is how a thrown skill lands exactly where the player aimed.
+@export var target_position_key: String = ""
 
 func _tick(instance: GAS_BTInstance, _delta: float) -> int:
 	var context := _get_context(instance)
@@ -29,6 +33,17 @@ func _tick(instance: GAS_BTInstance, _delta: float) -> int:
 	if direction == Vector2.ZERO:
 		direction = Vector2.RIGHT
 
+	# A chosen landing point overrides both direction and reach.
+	var distance := projectile_data.max_distance
+	# Explicitly Variant: `_resolve_landing()` returns null or a Vector2, and the
+	# project treats "inferred from Variant" as an error.
+	var landing: Variant = _resolve_landing(context)
+	if landing != null:
+		var to_landing := (landing as Vector2) - _muzzle_position(instigator, direction)
+		if to_landing.length() > 0.001:
+			direction = to_landing.normalized()
+			distance = minf(to_landing.length(), projectile_data.max_distance)
+
 	# Projectiles live next to the caster so they y-sort with the world.
 	var parent: Node = instigator.get_parent()
 	if parent == null:
@@ -40,7 +55,7 @@ func _tick(instance: GAS_BTInstance, _delta: float) -> int:
 		if projectile is Node2D:
 			(projectile as Node2D).global_position = _muzzle_position(instigator, shot_direction)
 		if projectile.has_method("launch"):
-			projectile.launch(shot_direction, projectile_data.speed, projectile_data.max_distance)
+			projectile.launch(shot_direction, projectile_data.speed, distance)
 		else:
 			push_warning("AbilityNodeSpawnProjectile2D: projectile has no launch().")
 		if "payload_effects" in projectile:
@@ -49,6 +64,14 @@ func _tick(instance: GAS_BTInstance, _delta: float) -> int:
 			projectile.impact_field = projectile_data.impact_field
 		if "instigator" in projectile:
 			projectile.instigator = instigator
+		if "target_group" in projectile:
+			projectile.target_group = projectile_data.target_group
+		if "lob" in projectile:
+			projectile.lob = projectile_data.lob
+		if "lob_height" in projectile:
+			projectile.lob_height = projectile_data.lob_height
+		if "spin_speed" in projectile:
+			projectile.spin_speed = projectile_data.spin_speed
 
 	context["projectiles_spawned"] = true
 	return Status.SUCCESS
@@ -63,6 +86,13 @@ func _resolve_direction(instance: GAS_BTInstance, context: Dictionary, instigato
 		if facing != Vector2.ZERO:
 			return facing.normalized()
 	return Vector2.RIGHT
+
+## The landing point the preview strategy picked, or null for direction-only skills.
+func _resolve_landing(context: Dictionary) -> Variant:
+	if target_position_key.is_empty():
+		return null
+	var point: Variant = context.get(target_position_key)
+	return point if point is Vector2 else null
 
 ## Spawn point keeps the shot out of the caster's own collision shape.
 func _muzzle_position(instigator: Node2D, direction: Vector2) -> Vector2:

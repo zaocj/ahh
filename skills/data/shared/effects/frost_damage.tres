@@ -1,9 +1,9 @@
-[gd_resource type="Resource" script_class="GE_ApplyDamage" format=3]
+[gd_resource type="Resource" script_class="GE_ApplyDamage" format=3 uid="uid://bwuah5outyy3u"]
 
-[ext_resource type="Script" path="res://skills/two_d/flat_damage_logic.gd" id="1_646dm"]
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/filters/gameplay_filter.gd" id="2_equed"]
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/effects/ge_apply_damage.gd" id="3_qyqw7"]
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/effects/gameplay_effect.gd" id="4_5wtvb"]
+[ext_resource type="Script" uid="uid://hv4gqc5wxsea" path="res://skills/two_d/flat_damage_logic.gd" id="1_646dm"]
+[ext_resource type="Script" uid="uid://bh8lykstg57tm" path="res://addons/godot_ability_system/scripts/filters/gameplay_filter.gd" id="2_equed"]
+[ext_resource type="Script" uid="uid://cra1yv70jj5sn" path="res://addons/godot_ability_system/scripts/effects/ge_apply_damage.gd" id="3_qyqw7"]
+[ext_resource type="Script" uid="uid://cb3e3wuphyka3" path="res://addons/godot_ability_system/scripts/effects/gameplay_effect.gd" id="4_5wtvb"]
 
 [sub_resource type="Resource" id="Resource_w1agg"]
 script = ExtResource("1_646dm")

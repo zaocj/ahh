@@ -17,6 +17,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+CombatEvents="*res://core/events/combat_events.gd"
 GameplayAbilitySystem="*res://addons/godot_ability_system/scripts/singletons/gameplay_ability_system.gd"
 DamageCalculator="*res://addons/godot_ability_system/scripts/singletons/damage_calculator.gd"
 TagManager="*res://addons/godot_ability_system/scripts/singletons/gameplay_tag_manager.gd"

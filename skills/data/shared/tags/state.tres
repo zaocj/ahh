@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="GameplayTag" format=3]
+
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/tags/gameplay_tag.gd" id="1_djenl"]
+
+[resource]
+script = ExtResource("1_djenl")
+id = &"state"
+display_name = "State"

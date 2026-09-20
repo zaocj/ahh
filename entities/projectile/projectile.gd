@@ -9,6 +9,11 @@ extends Area2D
 ##
 ## Collision layers: 1 = world/walls, 2 = characters, 3 = projectiles.
 ## The projectile scans 1 and 2, and ignores whoever fired it.
+##
+## Targeting is data, not physics: an Area2D cannot tell a friend from an enemy,
+## so `target_group` (from ProjectileData2D) filters the bodies it may damage. An
+## enemy bolt with `target_group = players` flies through other enemies instead of
+## friendly-firing them.
 
 signal travelled(distance: float)
 signal impacted(target: Node)
@@ -28,6 +33,14 @@ var payload_effects: Array[GameplayEffect] = []
 var impact_field: MagicFieldData2D = null
 ## Who fired it: the effect instigator, and never a valid target.
 var instigator: Node = null
+## Group the projectile may damage; empty = anything with a vital component.
+var target_group: StringName = &""
+## Lobbed: flies over bodies and walls, then detonates at `max_distance`. The
+## payload is delivered by the impact field, never by contact.
+var lob: bool = false
+## Visual arc height and tumble of a lob (the collision stays on the straight line).
+var lob_height: float = 30.0
+var spin_speed: float = 14.0
 
 @onready var _body: Polygon2D = $Body
 @onready var _collision: CollisionShape2D = $CollisionShape2D
@@ -51,12 +64,24 @@ func _physics_process(delta: float) -> void:
 	global_position += direction * step
 	distance_travelled += step
 	travelled.emit(distance_travelled)
+	if lob:
+		# Fake a parabolic arc on the body only: the area that decides where it lands
+		# keeps flying straight, so the blast lands exactly on the aimed point.
+		var progress := clampf(distance_travelled / maxf(max_distance, 0.001), 0.0, 1.0)
+		_body.position = Vector2(0.0, -lob_height * sin(PI * progress))
+		_body.rotation += spin_speed * delta
 	if distance_travelled >= max_distance:
 		_detonate(global_position)
 		queue_free()
 
 func _on_body_entered(body: Node2D) -> void:
+	if lob:
+		# A thrown shot only delivers its payload when it lands.
+		return
 	if body == instigator:
+		return
+	# Wrong faction: fly on, this body is not a target of this projectile.
+	if target_group != &"" and not body.is_in_group(target_group):
 		return
 	_deliver_payload(body)
 	_detonate(global_position)

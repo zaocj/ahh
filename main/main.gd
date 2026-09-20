@@ -1,40 +1,53 @@
 extends Node2D
 ## Arena root: wires the on-screen controls (movement joystick, ability buttons,
-## skill drawer, enemy spawner) to the player and reports state on the HUD.
+## skill drawer) to the player and reports state on the HUD.
 ##
 ## Skills are handled by the gameplay ability system plugin; this script only
 ## routes button presses into it and mirrors cooldowns back onto the buttons.
+## Match flow (countdown, clock, win/lose, rematch) belongs to MatchDirector -
+## this node just connects it to the HUD labels and the result overlay.
+##
+## The arena's enemy comes from the scene (position in main.tscn) and a rematch
+## reloads it, so nothing here spawns enemies: a wave spawner, when it is needed,
+## belongs to core/battle/ next to MatchDirector.
 
 @onready var player: Player = $Player
 @onready var joystick: Control = $HUD/Joystick
 @onready var status_label: Label = $HUD/Status
+@onready var timer_label: Label = $HUD/Timer
+@onready var announce_label: Label = $HUD/Announce
 @onready var skill_buttons: Array[SkillButton] = [$HUD/SkillBullet, $HUD/SkillDash]
 @onready var ability_input: AbilityInputRouter = $Player/InputRouter
 @onready var drawer: SkillDrawer = $HUD/SkillDrawer
 @onready var drawer_toggle: ActionButton = $HUD/DrawerToggle
-@onready var spawn_button: ActionButton = $HUD/SpawnEnemy
+@onready var director: MatchDirector = $MatchDirector
+@onready var result_overlay: ResultOverlay = $HUD/ResultOverlay
+@onready var sfx: CombatSfx = $CombatSfx
 
-const HINT: String = "WASD / Arrows or drag the joystick to move | tap a skill to cast, hold to aim"
-const ENEMY_SCENE: String = "res://entities/enemy/enemy.tscn"
-## Clear floor cells the spawner cycles through.
-const SPAWN_POINTS: Array[Vector2] = [
-	Vector2(200.0, 150.0),
-	Vector2(400.0, 150.0),
-	Vector2(1000.0, 150.0),
-	Vector2(1000.0, 600.0),
-	Vector2(200.0, 600.0),
-]
+## Tag vocabulary the skills use ("status.frozen", ...). The plugin's TagManager
+## only knows tags it was handed, and unregistered ones are silently dropped
+## (AGENTS.md pitfall 17). Any new entry scene has to register them too.
+const TAG_DIRECTORY: String = "res://skills/data/shared/tags/"
 
-var _spawn_index: int = 0
+## `TagManager.initialize()` is not idempotent: a second call warns ("已经初始化！")
+## and re-registering a tag warns too. A rematch reloads this scene, so the
+## registration has to happen exactly once per process - hence a static flag
+## instead of an instance one.
+static var _tags_registered: bool = false
+
+const HINT: String = "WASD / joystick to move | tap a skill to cast, hold to aim | 60s - first one down loses"
 
 func _ready() -> void:
+	if not _tags_registered:
+		TagManager.initialize(TAG_DIRECTORY)
+		_tags_registered = true
 	joystick.vector_changed.connect(_on_joystick_vector_changed)
 	status_label.text = HINT
 	_wire_skill_buttons()
 	drawer.setup(ability_input)
 	drawer.ability_chosen.connect(_on_ability_chosen)
 	drawer_toggle.pressed.connect(drawer.toggle)
-	spawn_button.pressed.connect(spawn_enemy)
+	_wire_match_flow()
 
 func _process(_delta: float) -> void:
 	for slot in skill_buttons.size():
@@ -70,12 +83,31 @@ func _on_joystick_vector_changed(vector: Vector2) -> void:
 func _on_ability_activated(_slot: int, ability_id: StringName) -> void:
 	status_label.text = "Cast: %s" % ability_id
 
-## Spawns another enemy at the next clear spawn point.
-func spawn_enemy() -> Enemy:
-	var scene := load(ENEMY_SCENE) as PackedScene
-	var enemy := scene.instantiate() as Enemy
-	add_child(enemy)
-	enemy.global_position = SPAWN_POINTS[_spawn_index % SPAWN_POINTS.size()]
-	_spawn_index += 1
-	status_label.text = "Enemy spawned (%d alive)" % get_tree().get_nodes_in_group(&"enemies").size()
-	return enemy
+## Match flow wiring: the director decides, the HUD shows, the overlay offers a
+## rematch.
+func _wire_match_flow() -> void:
+	director.timer_changed.connect(func(text: String) -> void: timer_label.text = text)
+	director.announce.connect(_on_match_announce)
+	director.state_changed.connect(_on_match_state_changed)
+	director.finished.connect(_on_match_finished)
+	result_overlay.restart_requested.connect(director.restart)
+	# The director starts in its own _ready(), which runs before this one, so the
+	# first emissions are already gone: paint the current state instead of waiting
+	# for the next signal.
+	timer_label.text = director.time_text()
+	_on_match_announce(director.announce_text())
+	_on_match_state_changed(director.state)
+
+func _on_match_state_changed(state: MatchDirector.State) -> void:
+	# The help line is for playing; the result overlay speaks for itself.
+	status_label.visible = state != MatchDirector.State.FINISHED
+
+func _on_match_announce(text: String) -> void:
+	announce_label.text = text
+	announce_label.visible = not text.is_empty()
+	# Countdown blips are match-flow feedback, not combat events, so they are wired
+	# here instead of through CombatEvents.
+	sfx.play_announce(text)
+
+func _on_match_finished(result: MatchDirector.Result, reason: String) -> void:
+	result_overlay.show_result(director.result_title(), reason, director.result_accent())

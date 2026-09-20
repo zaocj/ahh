@@ -1,0 +1,47 @@
+[gd_resource type="Resource" script_class="GameplayAbilityDefinition" format=3 uid="uid://c6ljng2ildku0"]
+
+[ext_resource type="Script" uid="uid://sxdftgknoett" path="res://addons/godot_ability_system/scripts/behavior_tree/bt_node.gd" id="1_w4ccs"]
+[ext_resource type="Script" uid="uid://dhf7lb257cib2" path="res://addons/godot_ability_system/scripts/abilities/ability_nodes/ability_node_commit_cooldown.gd" id="2_rqnif"]
+[ext_resource type="Script" uid="uid://cb3e3wuphyka3" path="res://addons/godot_ability_system/scripts/effects/gameplay_effect.gd" id="3_6pjcd"]
+[ext_resource type="Resource" uid="uid://d0ikrldgvktu8" path="res://skills/data/shared/effects/bullet_damage.tres" id="4_gdi7q"]
+[ext_resource type="PackedScene" path="res://entities/projectile/projectile.tscn" id="5_ewf67"]
+[ext_resource type="Script" uid="uid://brx07wk3sdaib" path="res://skills/two_d/projectile_data_2d.gd" id="6_3nbua"]
+[ext_resource type="Script" uid="uid://b12ksv3n4grvd" path="res://skills/two_d/ability_node_spawn_projectile_2d.gd" id="7_3njhd"]
+[ext_resource type="Script" uid="uid://c41o2t4s0gv2b" path="res://addons/godot_ability_system/scripts/behavior_tree/composites/bt_sequence.gd" id="8_6weat"]
+[ext_resource type="Script" uid="uid://cm0x3pewlrveo" path="res://addons/godot_ability_system/scripts/abilities/features/gameplay_ability_feature.gd" id="9_qk2cv"]
+[ext_resource type="Script" uid="uid://cfho6ucrpkdn1" path="res://addons/godot_ability_system/scripts/abilities/features/cooldown_feature.gd" id="10_8tx54"]
+[ext_resource type="Script" uid="uid://bm4h231fb21pv" path="res://addons/godot_ability_system/scripts/abilities/gameplay_ability_definition.gd" id="11_wkqwt"]
+
+[sub_resource type="Resource" id="Resource_irqr8"]
+script = ExtResource("2_rqnif")
+node_id = &"commit_cooldown"
+
+[sub_resource type="Resource" id="Resource_bhm7b"]
+script = ExtResource("6_3nbua")
+speed = 330.0
+max_distance = 560.0
+projectile_scene = ExtResource("5_ewf67")
+payload_effects = Array[ExtResource("3_6pjcd")]([ExtResource("4_gdi7q")])
+target_group = &"players"
+
+[sub_resource type="Resource" id="Resource_5soip"]
+script = ExtResource("7_3njhd")
+projectile_data = SubResource("Resource_bhm7b")
+node_id = &"spawn_projectile"
+
+[sub_resource type="Resource" id="Resource_sgvw7"]
+script = ExtResource("8_6weat")
+children = Array[ExtResource("1_w4ccs")]([SubResource("Resource_irqr8"), SubResource("Resource_5soip")])
+node_id = &"ability_sequence"
+
+[sub_resource type="Resource" id="Resource_bo2a5"]
+script = ExtResource("10_8tx54")
+cooldown_duration = 1.4
+
+[resource]
+script = ExtResource("11_wkqwt")
+ability_id = &"bolt"
+ability_name = "Bolt"
+description = "Enemy shot: 10 damage to whoever it hits."
+features = Array[ExtResource("9_qk2cv")]([SubResource("Resource_bo2a5")])
+execution_tree = SubResource("Resource_sgvw7")

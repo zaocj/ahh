@@ -1,12 +1,12 @@
-[gd_resource type="Resource" script_class="GE_ApplyStatus" format=3]
+[gd_resource type="Resource" script_class="GE_ApplyStatus" format=3 uid="uid://bhllwofhs5cxe"]
 
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/filters/gameplay_filter.gd" id="1_iqald"]
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/effects/ge_apply_status.gd" id="2_s1pgn"]
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/effects/gameplay_effect.gd" id="3_gq3nb"]
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/status/duration/duration_natural_time.gd" id="4_jm5cm"]
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/status/features/status_feature.gd" id="5_46uqa"]
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/status/gameplay_status_data.gd" id="6_icosn"]
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/status/stacking/stacking_refresh_duration.gd" id="7_7hgqt"]
+[ext_resource type="Script" uid="uid://bh8lykstg57tm" path="res://addons/godot_ability_system/scripts/filters/gameplay_filter.gd" id="1_iqald"]
+[ext_resource type="Script" uid="uid://b44v0u0g5ig0m" path="res://addons/godot_ability_system/scripts/effects/ge_apply_status.gd" id="2_s1pgn"]
+[ext_resource type="Script" uid="uid://cb3e3wuphyka3" path="res://addons/godot_ability_system/scripts/effects/gameplay_effect.gd" id="3_gq3nb"]
+[ext_resource type="Script" uid="uid://fe26xby8mcbp" path="res://addons/godot_ability_system/scripts/status/duration/duration_natural_time.gd" id="4_jm5cm"]
+[ext_resource type="Script" uid="uid://ctnmjf6pyjfeu" path="res://addons/godot_ability_system/scripts/status/features/status_feature.gd" id="5_46uqa"]
+[ext_resource type="Script" uid="uid://8u46anns2vhm" path="res://addons/godot_ability_system/scripts/status/gameplay_status_data.gd" id="6_icosn"]
+[ext_resource type="Script" uid="uid://dc022ooby3n5j" path="res://addons/godot_ability_system/scripts/status/stacking/stacking_refresh_duration.gd" id="7_7hgqt"]
 
 [sub_resource type="Resource" id="Resource_qptp2"]
 script = ExtResource("4_jm5cm")

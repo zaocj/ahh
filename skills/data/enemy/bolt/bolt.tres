@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ProjectileData2D" format=3]
+
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/effects/gameplay_effect.gd" id="1_hnls6"]
+[ext_resource type="Resource" path="res://skills/data/shared/effects/bullet_damage.tres" id="2_8ghv1"]
+[ext_resource type="PackedScene" path="res://entities/projectile/projectile.tscn" id="3_w0bwt"]
+[ext_resource type="Script" path="res://skills/two_d/projectile_data_2d.gd" id="4_48r68"]
+
+[resource]
+script = ExtResource("4_48r68")
+speed = 330.0
+max_distance = 560.0
+projectile_scene = ExtResource("3_w0bwt")
+payload_effects = Array[ExtResource("1_hnls6")]([ExtResource("2_8ghv1")])
+target_group = &"players"

@@ -11,14 +11,16 @@
 script = ExtResource("4_h624r")
 duration = 0.3
 tick_interval = 0.0
-radius = 90.0
+radius = 95.0
 color = Color(1, 0.55, 0.2, 0.3)
 field_scene = ExtResource("1_31o3w")
 payload_effects = Array[ExtResource("2_4ojh8")]([ExtResource("3_5vykl")])
 
 [resource]
 script = ExtResource("6_o6plq")
-speed = 380.0
 max_distance = 420.0
+lob = true
+lob_height = 32.0
+spin_speed = 15.0
 projectile_scene = ExtResource("5_mo1au")
 impact_field = SubResource("Resource_1u6c0")

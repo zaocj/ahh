@@ -19,26 +19,28 @@
 | `addons/godot_agent_loop/` | 编辑器插件（MCP 桥，`@tool extends EditorPlugin`）。**只在编辑器里跑**，导出预设已把它排除 | 有内容 |
 | `addons/godot_ability_system/` | **技能系统插件（git 子模块**，MIT，pin 在 `a360f40`，[LiGameAcademy/godot_ability_system](https://github.com/LiGameAcademy/godot_ability_system)）。技能定义/特性/冷却/行为树/属性/血条 vital/效果/状态/标签/伤害计算都在这里。**不要改子模块里的文件**（升级会冲突），要扩展就在 `skills/two_d/` 里继承它的类。它是**3D-first**的（见下方"技能系统"） | 有内容（子模块） |
 | `assets/textures/` | 共享原始素材。现有 `terrain_atlas.png` = 程序化生成的 4 格图集（地面 / 地面变体 / 墙 / 地台） | 有内容 |
-| `assets/audio/` `assets/fonts/` | 音频 / 字体原始素材 | 空（占位） |
-| `core/battle/` | 战斗编排（回合调度、胜负判定、计分） | 空（占位） |
+| `assets/audio/` | 占位音效（`hit` / `player_hit` / `shoot` / `dash` / `death` / `win` / `lose` / `tick`，8 个短 wav，**程序化合成的占位**，直接换文件即可）。`assets/fonts/` 仍空 | 有内容 |
+| `core/battle/` | 战斗编排。现有 `match_director.gd`（`MatchDirector`：READY 倒计时 → PLAYING 计时 → FINISHED 结算，用 `get_tree().paused` 冻结世界，胜负判定见下方“对局流程”） | 有内容 |
 | `core/network/` | 联网（同步、房间、消息） | 空（占位） |
-| `core/events/` | 全局事件总线 / 信号中枢 | 空（占位） |
+| `core/events/` | 全局事件总线。现有 `combat_events.gd`（autoload `CombatEvents`：`damaged` / `died` / `ability_cast` / `match_finished`）。**玩法只 report，表现只 subscribe**（见下方“命中反馈”） | 有内容 |
 | `core/utils/` | 跨功能工具函数。现有 `targets.gd`（`Targets.nearest()` / `offset_to_nearest()`：按 group 找最近目标，技能自动瞄准与敌人追击共用） | 有内容 |
 | `entities/base/` | 可复用实体基类 | 空（占位，血量改用插件的 vital） |
 | `entities/player/` | **玩家**：`player.gd` + `player.tscn` + `player_shape.tres`（`facing` / `dash()` / `is_dashing()`，group `players`） | 有内容 |
 | `entities/projectile/` | **投射物**：`projectile.gd` + `projectile.tscn` + `projectile_shape.tres`（匀速直飞，撞墙/打到实体/飞满 `max_distance` 自毁） | 有内容 |
-| `entities/enemy/` | **敌人**：`enemy.gd` + `enemy.tscn` + `enemy_shape.tres`（追 `target_group` 里最近的目标，到 `stop_distance` 停下；自带 `Health` 与血条） | 有内容 |
+| `entities/enemy/` | **敌人**：`enemy.gd` + `enemy.tscn` + `enemy_shape.tres`（追 `target_group` 里最近的目标，到 `stop_distance` 停下；自带 `Health` 与血条；也**会用技能**：`enemy.tscn` 上挂了插件 `GameplayAbilityComponent`（`Abilities`）+ `AiAbilityRouter`（`AiRouter`），loadout = `skills/data/enemy/loadout.tres`） | 有内容 |
 | `entities/hitbox/` | 命中判定盒 | 空（占位） |
 | `entities/pickup/` | 拾取物（能量块、补给） | 空（占位） |
 | `heroes/base/` | 英雄基类（hero.gd / hero.tscn / hero_data.tres） | 空（占位） |
 | `heroes/<hero>/` | **一个英雄一个自包含目录**：`<hero>.gd` `<hero>.tscn` `<hero>_data.tres` 图标/立绘、以及该英雄专属 `skills/` | 空（占位：`warrior/` `ranger/` `assassin/`） |
-| `skills/two_d/` | **插件的 2D 适配层**（插件本体在 3D 侧，2D 项目必须自己补）：`indicator_preview_2d.gd`（2D 瞄准指示器 + 默认朝向）、`ability_node_spawn_projectile_2d.gd`（行为树节点：发射 2D 投射物）、`projectile_data_2d.gd`、`ge_dash_2d.gd`（2D 位移效果）、`flat_damage_logic.gd`（固定伤害策略）、`ability_input_router.gd`（按钮 → 插件生命周期）、`ability_loadout_2d.gd` / `stat_block_2d.gd`（把数组型配置塞进 `.tres`）、`skill_indicator.gd` + `skill_indicator_data.gd`（2D 指示器绘制） | 有内容 |
+| `skills/two_d/` | **插件的 2D 适配层**（插件本体在 3D 侧，2D 项目必须自己补）：`indicator_preview_2d.gd`（2D 瞄准指示器 + 默认朝向）、`ability_node_spawn_projectile_2d.gd`（行为树节点：发射 2D 投射物）、`projectile_data_2d.gd`、`ge_dash_2d.gd`（2D 位移效果）、`flat_damage_logic.gd`（固定伤害策略）、`ability_input_router.gd`（按钮 → 插件生命周期，玩家用）、`ai_ability_router.gd`（AI → 插件生命周期，敌人用）、`ability_loadout_2d.gd` / `stat_block_2d.gd`（把数组型配置塞进 `.tres`）、`skill_indicator.gd` + `skill_indicator_data.gd`（2D 指示器绘制） | 有内容 |
+| `skills/data/shared/tags/` | 项目的**标签词表**（`GameplayTag` 资源：`status.frozen` / `state.frozen` …）。插件 TagManager 只认得被注册过的标签，未注册的 `add_tag` 会警告并静默失败 → `main.gd` 启动时 `TagManager.initialize("res://skills/data/shared/tags/")`。**故意不带 `parent_tag_id`**，见坑 17 | 有内容 |
+| `skills/data/enemy/<skill>/` | **敌人技能数据**（和玩家技能同一套格式，但**不配预览策略**）：`bolt.tres`（ProjectileData2D，`target_group = players`）+ `bolt_skill.tres`；`skills/data/enemy/loadout.tres` 是敌人的技能栏 | 有内容（`bolt/`） |
 | `skills/data/shared/` | 跨技能共用数据：属性（`max_health`…）、`vitals/health.tres`、`enemy_stats.tres`（属性集 + vital）、`effects/bullet_damage.tres`（GE_ApplyDamage + 固定 10） | 有内容 |
 | `skills/data/player/<skill>/` | **一个技能一个目录**：`<skill>.tres`（GameplayAbilityDefinition：特性 + 行为树 + 预览策略）、`preview.tres`、`indicator.tres`、以及该技能的子弹数据 | 有内容（`shot/`、`dash/`、`loadout.tres`） |
 | `skills/data/build/` | `generate_ability_data.gd/.tscn`：一键生成上面这些 `.tres`（嵌套资源手写易错）。**只在加/改技能结构时跑一次**，之后在编辑器里改 `.tres` | 有内容 |
 | `maps/arena_01/` | **一张地图一个目录**：`arena_01.tscn`（根 `Arena01` + 子 `Terrain` TileMapLayer）、`arena_01_tileset.tres`、`terrain.gd`（按 ASCII 地图刷格） | 有内容 |
 | `ui/hud/` | 局内 HUD。现有 `virtual_joystick.gd`（触摸/鼠标摇杆）、`skill_button.gd`（技能按钮：短按直接施放，长按/拖动瞄准） | 有内容 |
-| `ui/battle/` | 对局内其它界面（倒计时、结算） | 空（占位） |
+| `ui/battle/` | 对局内界面与反馈。现有 `result_overlay.gd/.tscn`（结算面板：标题 + 原因 + Rematch；`PROCESS_MODE_ALWAYS`，因为在世界暂停时也要能点）、`damage_number.gd/.tscn` + `damage_numbers.gd`（伤害飘字与其订阅者）、`combat_sfx.gd`（音效订阅者 + 声音池） | 有内容 |
 | `ui/lobby/` | 大厅 / 主菜单 | 空（占位） |
 | `ui/hero_select/` | 选英雄界面 | 空（占位） |
 | `main/` | **装配根**：`main.tscn` + `main.gd`（实例化玩家与地图、接线摇杆、HUD 状态） | 有内容 |
@@ -53,27 +55,51 @@
 
 ```
 main/main.tscn        Main (Node2D, y_sort_enabled)
-                      ├── HUD (CanvasLayer) → Status (Label) + Joystick (Control, virtual_joystick.gd)
+                      ├── HUD (CanvasLayer) → Status (Label, 左下帮助行) + Timer (Label, 局中时钟)
+                      │                    → Announce (Label, 3-2-1-GO) + ResultOverlay (实例: ui/battle/result_overlay.tscn)
+                      │                    → Joystick (Control, virtual_joystick.gd)
                       │                    → SkillBullet / SkillDash (Control, skill_button.gd)
+                      │                    → DrawerToggle / SkillDrawer（换技能用的调试 UI）
                       ├── Player   ← 实例：entities/player/player.tscn（position 覆盖为出生点 656,368，group: players）
                       │   ├── Abilities  (GameplayAbilityComponent，插件)
                       │   └── InputRouter (AbilityInputRouter：按钮 → 插件施放流程)
                       ├── Arena01  ← 实例：maps/arena_01/arena_01.tscn → Terrain (TileMapLayer)
-                      └── Enemy    ← 实例：entities/enemy/enemy.tscn（position 830,260）
+                      ├── Enemy    ← 实例：entities/enemy/enemy.tscn（position 830,260，stop_distance 200）
+                      │   ├── Abilities  (GameplayAbilityComponent，插件)
+                      │   └── AiRouter   (AiAbilityRouter：AI → 插件施放流程)
+                      ├── MatchDirector (Node, core/battle/match_director.gd；必须是最后一个子节点)
+                      ├── DamageNumbers  (Node, ui/battle/damage_numbers.gd：飘字订阅者)
+                      └── CombatSfx      (Node, ui/battle/combat_sfx.gd：音效订阅者)
 ```
+
+- **对局流程**（`MatchDirector`，`core/battle/`）：`READY`（3-2-1-GO，`get_tree().paused = true` 冻结世界 → 期间**不需要**任何“锁输入”代码）→ `PLAYING`（60s 计时）→ `FINISHED`（再次暂停，发 `finished`，`ui/battle/result_overlay.tscn` 弹出，Rematch 走 `director.restart()` → `reload_current_scene()`）。
+  胜负：**玩家阵亡 → 敌方胜**；**敌人全灭 → 玩家胜**；同一帧双方都死 → 平局；**60s 到 → 比剩余血量比例**（玩家 vs 敌人平均，差值 ≤5% 算平局）。玩家死亡**不销毁节点**（相机挂在玩家身上），只是变灰、停手、`is_alive()` 变 false。
+  `MatchDirector` 是 `PROCESS_MODE_ALWAYS`（它自己就是暂停/解暂停的那个节点），其余节点保持默认（可暂停）——所以新加的东西默认就会被 READY/FINISHED 冻结，不需要额外配合。
+- **敌人也会用技能**：和玩家同一条插件链路，只是入口换成 `AiAbilityRouter`（`skills/two_d/`）——它只看“冷却好了 + 目标在 `cast_range` 内 + 没被沉默”，就用 `try_activate_ability(id, {target_direction, targets})` 施放。技能数据在 `skills/data/enemy/`，**没有预览策略**（AI 不用指示器瞄准，也就不会碰到“一份 definition 共享一个 preview_strategy”的坑，见坑 15）。
+  敌人子弹的 `ProjectileData2D.target_group = players`：Area2D 分不清敌我，**阵营靠 group 过滤**（`projectile.gd`），所以敌人不会误伤同类。
+  `AiAbilityRouter.silence_statuses = [&"frozen"]` → 被冻住的施法者不能开火：这就是 frost 技能对敌人的实际价值。
 
 - **输入**：`project.godot` 里 4 个命名 action（`move_left/right/up/down`，WASD + 方向键）。`player.gd` 用 `Input.get_vector()` 读它们，摇杆则通过 `player.joystick_input` 汇入同一入口。→ 加新操作请加命名 action，不要用 `ui_*`。
 - **玩家视觉**：`Player/Body` 是 `Polygon2D`，颜色即"有色方块"。换成正式 Sprite 时删掉 `player.gd` 里推导多边形的代码即可。
 - **技能**：由插件驱动，一条链路是
   `HUD 按钮 → AbilityInputRouter.press/drag/release → GameplayAbilityComponent.request_ability_preview() / update_targeting() / confirm_targeting() / try_activate_ability()`。
   **按下**就进预览（指示器立刻出现，响应快），**拖动**超过 `aim_dead_zone` 才覆盖默认朝向，**松手**用 `confirm_targeting()` 的结果施放；所以"点一下"永远走技能的默认方向。冷却、消耗、执行全部在插件里（`CooldownFeature` / `CommitCooldown` 节点 / 行为树）；按钮的扇形遮罩读 `CooldownFeature.get_cooldown_progress()`（`main.gd::_process` 每帧同步）。
+- **两种瞄准模式**（`IndicatorPreview2D.targeting`）：`DIRECTION`（箭矢/子弹：只用拖动的**角度**，效果飞到 `max_range`；点一下 = 自动瞄准最近敌人）和 `POSITION`（投掷/选址类，如手雷：拖动的**长度**就是投掷距离 —— `full_drag_pixels` 像素 = 满距离 —— 另配 `range_indicator_data` 画一圈"射程环"，落点被夹在环内；点一下 = 直接落在最近目标身上）。做 POSITION 技能时行为树节点要写 `target_position_key = "target_position"`（`AbilityNodeSpawnProjectile2D` 会按落点反算方向和距离）。
 - **默认朝向（自动瞄准）**在 `IndicatorPreview2D.default_aim` 上：`FACING` / `TO_TARGET`（朝 `target_group` 里最近目标）/ `AWAY_FROM_TARGET`（反向，后撤 dash）。当前 `shot` = `TO_TARGET`、`dash` = `AWAY_FROM_TARGET`，`target_group` 都是 `enemies`（敌人预制已加入该 group）。没有目标时回退 `facing`。
+- **预览策略的归属**：`.tres` 里的 `preview_strategy` 是每个*定义*一份（不是每个施法者一份），所以两个 router 都会用 `AbilityLoadout2D.private_definition()` 给每个 caster 一份副本。新增技能时不用管这件事；但**不要自己把 `.tres` 里的 strategy 直接 `learn_ability` 给某个实体**（会和其他施法者抢同一个指示器，见坑 21）。
 - **施放结果怎么传到行为树**：预览策略的 `get_result_context()` 返回 `target_direction`（Vector2）/ `target_position`，插件把它作为 context 交给行为树；`AbilityNodeSpawnProjectile2D` 读 `target_direction`，`GE_Dash2D` 也读它。**context 里必须始终带一个 `targets` 数组**（哪怕为空）——见坑 10。
 - **加一个新技能**：先在 `skills/data/build/generate_ability_data.gd` 里照着现有段落拼出来（特性 + 行为树 + 预览策略），跑一次 `generate_ability_data.tscn` 生成 `.tres`，把它加进 `skills/data/player/loadout.tres`，再在 `main.tscn` 的 HUD 里加一个 `SkillButton`（顺序 = 槽位顺序）。之后数值都在编辑器里改 `.tres`。**不要给技能写专门的脚本**：优先用插件的特性 + 行为树节点 + 效果组合。
+- **加一个敌人技能**：同上，但 loadout 换成 `skills/data/enemy/loadout.tres`、**不要配 `preview_strategy`**（AI 靠 `target_direction` 施放），伤害放到 `skills/data/shared/effects/`，投射物数据记得写 `target_group`。敌人的 `AiRouter` 会自动把它加进 `learn_ability`（技能栏在 `loadout.tres` 里）。
+- **命中反馈（P1 手感）**：链是 `玩法 report → CombatEvents(autoload) → 各表现订阅者`。
+  - 上报点：`Player` / `Enemy` 通过 **vital 自己的 `damage_applied` / `health_depleted`** 上报（这两个信号带准确数值；组件的 `vital_value_changed` 只说明"现在是多少"，用来刷新血条/闪白）；两个 router 施放成功时 `report_cast`；`MatchDirector._finish()` 冻结世界后 `report_match_finished`。
+  - 订阅点：`DamageNumbers`（飘字，`damage_number.tscn`，玩家红/敌人黄，上升淡出自毁）、`CombatSfx`（8 个音效 + 6 路声音池 + 音高抖动；`play_history()` 记录"要过哪些声音"，因为 `playing` 太短命，headless 下更不可信）、`Player/Camera`（`player_camera.gd`：trauma 式震屏，`offset` 用正弦叠加而不是逐帧随机，衰减到 0 时精确归零）。
+  - 加新反馈 = 加一个订阅者，**不要**在实体/技能里写"播个音效/弹个数字"。
+  - 倒计时"嘟嘟"声是**对局流程**反馈而不是战斗事件，所以由 `main.gd` 直接从 `director.announce` 接到 `CombatSfx.play_announce()`。
 - **伤害路径**：投射物不改血量，它带一串插件 `GameplayEffect`（`payload_effects`，来自 `ProjectileData2D`），命中时 `effect.apply(target, instigator, context)` → `GE_ApplyDamage` → `DamageCalculator`（这里配的是 `FlatDamageLogic` 固定 10）→ 目标的 `GameplayVitalAttributeComponent` → `HealthVital.apply_damage()`。所以**可被打 = 有 `GameplayVitalAttributeComponent` 节点**（投射物用这个名字判断，墙/地形直接被跳过）。伤害数值只写在 `skills/data/shared/effects/*.tres` 与 `flat_damage_10.tres` 里。
 - **实体约定**：`facing`（朝向）、`dash(direction, distance, duration)`（可位移，由 `GE_Dash2D` 调用）、group `players`（可被追）/ `enemies`（可被瞄准）、`get_gameplay_ability_component()`（插件查组件的接口，见 player.gd）。血量/属性不写在实体脚本里，挂在插件组件上。
 - **地形**：`maps/arena_01/terrain.gd` 的 `ARENA` 常量（每格一字符：`#` 墙、`.` 地面、`o` 地台）在 `_ready()` 里 `set_cell` 刷出来。只有**墙格**带碰撞多边形（在 `arena_01_tileset.tres` 里）。想改成在 TileMap 面板手工刷 → 删掉该脚本即可无缝替换。
-- **y-sort**：`Main` / `Arena01` / `Terrain` / 实体都开 `y_sort_enabled`（决定实体之间的前后遮挡）。但**光靠 y-sort 不能保证实体画在地砖之上**：实体与它所在格的地砖排序键相同，会**被地砖盖住**（实测：Terrain `z_index = 0` 时，站在地面的玩家/敌人被脚下的地砖完全遮住，只看得见血条）。所以 `Terrain` 设为 `z_index = -1`（地形永远是背景），靠 y-sort 只负责实体之间的关系。改地形/新增图层时**必须截图确认**。
+- **y-sort**：`Main` / `Arena01` / `Terrain` / 实体都开 `y_sort_enabled`（决定实体之间的前后遮挡）。但**光靠 y-sort 不能保证实体画在地砖之上**：实体与它所在格的地砖排序键相同，会**被地砖盖住**（实测：Terrain `z_index = 0` 时，站在地面的玩家/敌人被脚下的地砖完全遮住，只看得见血条）。所以 `Terrain` 设为 `z_index = -10`（地形永远是背景），靠 y-sort 只负责实体之间的关系。
+   **另一个坑**：地形曾经和"地面贴花"（`MagicField2D`：法阵 / 爆炸，`z_index = -1`）同为 `-1` —— 两者都参与 y-sort，于是爆心下方那些地砖会盖到场地上，**把爆炸圆咬掉一块**（实测：手雷砸下去只看得见半个圆）。分层规则现在是：**地形 -10 ＜ 地面贴花 -1 ＜ 实体 0 ＜ 指示器 100 ＜ 飘字 200**（`verify_grenade` 里有一条断言守着贴花必须高于地形）。改地形 / 新增图层时**必须截图确认**。
 
 ## 已知坑（踩过，别重复）
 
@@ -97,6 +123,28 @@ main/main.tscn        Main (Node2D, y_sort_enabled)
 12. **插件脚本把 autoload 单例当全局标识符用**（`GameplayAbilitySystem` / `AbilityEventBus` / `TagManager` / `DamageCalculator` / `GameplayCueManager`）。这些名字只在**正常 project 运行**（场景启动、autoload 已注册）时能编译。用 `--check-only --script xx.gd` 或 `--script`（自定义 SceneTree）会报 `Identifier not found: GameplayAbilitySystem` —— **这是假错误**。校验插件相关脚本要跑场景（见"常用命令"），别用 `--check-only`。
 13. **导出预设的 `exclude_filter` 曾经是 `addons/*`**，会把运行期要用的技能插件一起排除出 APK（技能全部失效）。现在只排除 `addons/godot_agent_loop/*`、`addons/godot_ability_system/docs/*`、`examples/*`。动这个字段前先想清楚哪些 addon 是运行期依赖。
 14. **子模块不要手改**：`addons/godot_ability_system` 是 git 子模块（pin 在某个 commit）。要升级用 `git submodule update --remote addons/godot_ability_system`（然后提交新的 pin）；要改行为就在 `skills/two_d/` 里继承/包装它的类。直接改子模块里的文件会让下次升级冲突。
+15. **插件的预览/指示器只有显式 cancel 才会消失 —— 游戏侧必须做“唯一 owner”**。插件从不在自己内部结束预览（`is_finished()` 它根本不调用），而且 `preview_strategy` 上只存**一个** `_indicator` 引用。所以只要多一次 `begin()` 就永久残留一个指示器。实际踩到的两条路径：
+    - **一次触摸 = 一次 press 两次**：Godot 默认 `input_devices/pointing/emulate_mouse_from_touch = true`，一个手指会同时产生 `InputEventScreenTouch` 和模拟的 `InputEventMouseButton`。`SkillButton` 原先用 `NO_POINTER(-1)` 既表示“无指针”又表示“鼠标按住”，鼠标分支按下后 `_pointer_id` 仍是 -1 → 两个事件都通过“还没按下”的判断 → `press()` 两次 → 第二次 `begin()` 覆盖 `_indicator`，第一个指示器永远留在地图上（表现：手指抬起后指示器不动了/一直挂在场上）。修法：鼠标用独立哨兵 `MOUSE_POINTER(-2)`，谁是第一个按下的事件谁就拥有按钮，另一个事件忽略（两条事件顺序都测）。
+    - **不可预览的技能**：`GameplayAbilityComponent.request_ability_preview()` 在“瞬发 / 智能施法 / 无预览策略”时**先 return null，不走取消旧预览那段**，于是“按 A 瞄准中再按 B（不可预览）”会留下 A 的指示器。修法：`AbilityInputRouter` 成为预览的唯一 owner —— `press()` 先 `_cancel_preview()`，`release()/cancel_aim()/equip()` 都走同一个 `_cancel_preview()`（不带参数，取消该 caster 当前的预览），并在 `_process` 里加看门狗：`_previewing_slot < 0` 但插件仍有预览 → 取消它。
+    另外 `IndicatorPreview2D.begin()` 现在会先释放自己拥有的旧指示器（防御重复 begin），指示器带 `name = "SkillIndicator"` 并加入 group `skill_indicators` —— **任何时候没有人在瞄准，这个 group 就必须是空的**，可以直接拿它做断言/排查。相关约束：不要给 `is_finished()` 写 `return _active`（基类返回 true 才是对的语义：结果随时可取，由游戏决定何时 confirm）。
+
+16. **插件的 `disable_ability()` 实际上什么都没做**：`GameplayAbilityInstance.disabled` 是个 “get 返回 `_definition.disabled`” 的属性，所以 `disable_ability()` 写进去的值读出来就没了（`can_activate_ability()` 看的是 `instance.disabled`）。→ “死亡/被控就不能施放”这类规则要**在游戏侧做**：`AbilityInputRouter` / `AiAbilityRouter` 都先问 caster 的 `is_alive()`（实体约定），玩家的 `player.gd` 死亡时只负责变灰/停手/关掉输入。不要靠 `disable_ability` 当护栏。
+17. **插件的标签库只认注册过的标签，而且不能指望目录扫描帮你排好继承**：`frozen.tres` 里写的 `tags = [&"status.frozen", &"state.frozen"]` 如果没注册，`TagManager.add_tag/remove_tag` 会 `push_warning` 并静默失败（`has_tag`/过滤器都拿不到）。修法：游戏启动时 `TagManager.initialize("res://skills/data/shared/tags/")`（`main.gd::_ready()` 里做了——**新的入口场景也要做**）。另外 `initialize()` 会在扫描**之前**就把自己标成已初始化，于是每个 `register_tag` 都会立刻重建缓存 —— 子标签可能先于父标签被读到，报 “Parent tag [x] not found”。所以本项目的标签**故意都是平的（`parent_tag_id` 空）**，值需要层级时不要靠目录扫描，改成显式按顺序 `register_tags([...])`。
+18. **编辑器桥的几个坑（实测）**：
+    - `add_node` 的 `properties` 里混入 layout（anchors/offsets）以外的属性（`text`、`theme_override_*`）会 `property_not_found` → 拆成两次事务：先 `add_node` 只给布局，再 `set_properties` 给文本/字体/颜色。
+    - 同一个事务里 `attach_script` 后再 `assign_resource` / `set_properties` 会 `resource_or_property_invalid`（脚本还没生效就被用来校验属性）→ **attach_script 单独一次事务**。
+    - 颜色只能传**分量全相等**的 `{r,g,b,a}`；`{r:1,g:0.95,b:0.55,a:1}` 这种会被写成 `Color(0,0,0,1)`（黑）。非灰度颜色直接改 `.tscn` 文本（`theme_override_colors/font_color = Color(1, 0.95, 0.55, 1)`）然后 `editor_control` action=reload。
+    - `instantiate_scene` 会把预制的子节点**内联复制**进父场景（父场景里出现 `Title2/Reason2/…` 重复节点）→ 插完实例要确认父场景 `.tscn` 只留 `[node name="X" parent="…" instance=ExtResource("…")]` 一行，然后 reload（即坑 3）。
+19. **施放方向的优先级：预览策略 confirm 出来的 `target_direction` 不能被 router 的原始瞄准方向覆盖**。`AbilityInputRouter._activation_context()` 早先无条件写 `context["target_direction"] = _aim_direction`，而**单击（tap）时 `_aim_direction` 恰好是 `Vector2.ZERO`** → 预览策略算出的“默认朝向（自动瞄准最近敌人）”被丢掉 → `AbilityNodeSpawnProjectile2D._resolve_direction()` 退回 `instigator.facing`（= 上一次移动方向）→ **单击 shot 朝反方向飞**。正确优先级：**当前正在拖的方向（非零）> 预览 confirm 的结果 > caster facing**。
+    验证侧的教训：断言要问“**飞到哪**”，不能只问“有没有放出去”。旧套件只查了“冷却是否启动”，所以这个方向回归没被发现。现在 `verify_indicator` 里有两条：`a tap flies at the nearest enemy even when facing away`（故意把 `facing` 设成反方向）、`a dragged cast flies along the drag`。
+
+21. **预览策略是“每个定义一份”，绝不能让多个施法者共用 —— 每个 caster 必须拿自己的副本**。插件的 `GameplayAbilityInstance` 直接读写 `_definition.preview_strategy`，而 `.tres` 里的 strategy 是**一个共享实例**，它身上存着 `_caster` / `_indicator` / `_direction` / `_active`（见 `IndicatorPreview2D`）。于是第二个施法者一开镜，就会释放掉第一个施法者的指示器节点（`begin()` 里的防御性 `_release_indicator()`），它 cancel 时取消的也是“最后开始的那个”。单个施法者时看不出来，一旦 ①敌人也会放同一技能 或 ②第二个玩家（多人化）就立刻错乱。
+    修法在游戏侧（子模块不动）：`AbilityLoadout2D.private_definition()` 给每个 caster 一份**浅拷贝**的 definition + 一份拷贝的 strategy；行为树 / 特性 / 效果 / 预制场景 / 指示器外观仍然共享（冷却计时本来就存在 ability *instance* 的黑板上，所以共享特性是安全的）。两个 router 都走它，`equip()` 也因此改成按 `ability_id` 比较（`_equipped` 里现在是副本，不是 inventory 里的那个资源）。`IndicatorPreview2D.forget_state()` 负责把副本里的运行时字段清干净：`duplicate()` 会把 `_indicator` 引用一起带过来，不清的话新 caster 的第一次 `begin()` 会释放**别人的**指示器。
+    断言：`verify_indicator` 的 “two casters” 段（6 条）——共享版会挂：两个 caster 同时瞄准只剩 1 个指示器、cancel 一个把另一个也带走。
+    ⚠️ 同一类“共享资源上有可变状态”的隐患还有一处：`GE_ApplyDamage._apply()` 会写自己的 `damage_multiplier *= context.get("damage_multiplier", 1)`（写在**共享**的 effect 资源上）。默认 1 时无害，但别通过 context 传 `damage_multiplier`，否则会永久污染那个共享效果。
+
+22. **预览策略只在 `update()` 里刷新，所以 `release` 前必须把当前拖动推给它**。`ability_input_router.release()` 会先调 `drag()`（那只更新 router 自己的 `_aim_direction`），然后 `confirm_targeting()`；而策略里的 `_target_position` / `_direction` 只在 `update()`（由 router 每帧的 `_process` 调用）里重算 —— 同一帧内"拖动 + 松开"会确认**上一帧的**瞄准（表现：快速甩一下，手雷落在旧位置或默认落点）。修法：`release()` 里先 `_component.update_targeting(0.0, {"aim_direction": _aim_direction})` 再 confirm。凡是在 `update()` 里缓存状态的 strategy 都有这个坑。
+23. **投掷物有两种"到达方式"**：直线的（命中身体即停，`lob = false`）和抛掷的（`ProjectileData2D.lob = true`：飞越身体与墙、按 `max_distance` 落地才炸，`_body` 用正弦包络做假抛物线 + 自旋）。投射物节点用 `target_position_key` 把"落点"换算成方向 + 距离，所以"扔到指定坐标"不需要新脚本。注意 `lob` 的落点不做墙体检测：落点可能在墙里（目前接受，后续要加就把落点夹到可行走格）。
 
 ## 常用命令
 
@@ -113,11 +161,30 @@ PROJ=/Users/zhaojie/godot_project/ahh
 # 跑主场景 120 帧并看日志（不弹窗，适合 CI/快速自检）
 "$GODOT" --headless --path "$PROJ" --quit-after 120
 
-# 生成 / 重新生成技能数据（改动技能结构后跑一次；必须当场景跑，见坑 12）
+# 生成 / 重新生成全部数据（技能 + 标签 + 敌人技能；改动技能结构后跑一次；必须当场景跑，见坑 12）
+# 会覆盖同名 .tres，之后数值改在编辑器里改
 "$GODOT" --headless --path "$PROJ" res://skills/data/build/generate_ability_data.tscn
 
 # 技能系统断言套件（32 条；同样必须当场景跑）
-"$GODOT" --headless --path "$PROJ" --fixed-fps 60 res://.godot/verify_abilities.tscn
+# 注意：res://.godot/verify_abilities.tscn 已经不在了（.godot/ 是缓存目录，会被重新生成）——需要就重写
+# "$GODOT" --headless --path "$PROJ" --fixed-fps 60 res://.godot/verify_abilities.tscn
+
+# 指示器生命周期断言套件（30 条：触摸/鼠标事件顺序、不残留、拖动/单击的瞄准方向、切换槽位、equip、两个施法者互不干扰）
+# 临时件，同样放在 .godot/ 下；headless 会丢掉 Input.parse_input_event 事件，所以那次跑会 SKIP 2 条
+"$GODOT" --path "$PROJ" --fixed-fps 60 res://.godot/verify_indicator.tscn            # 30/30，exit 0
+"$GODOT" --headless --path "$PROJ" --fixed-fps 60 res://.godot/verify_indicator.tscn # 28/28 + 2 SKIP，exit 0
+
+# 命中反馈断言套件（19 条：飘字生成/数值/位置/自毁、闪白、震屏加与衰减、音效路由与音效真的在播）
+"$GODOT" --headless --path "$PROJ" --fixed-fps 60 res://.godot/verify_feedback.tscn   # 19/19，exit 0
+
+# 手雷断言套件（18 条：射程环/落点圆、拖动长度=投掷距离、夹到射程内、落点=瞄准点、25 伤害、飞越身体不提前爆、冷却、地面贴花层级）
+"$GODOT" --headless --path "$PROJ" --fixed-fps 60 res://.godot/verify_grenade.tscn     # 18/18，exit 0
+
+# 截图脚本（windowed）：/tmp/grenade_aim.png（射程环 + 落点圆）、/tmp/grenade_blast.png（爆炸 + 25 飘字）
+"$GODOT" --path "$PROJ" --fixed-fps 60 res://.godot/shots_grenade.tscn
+
+# 对局闭环断言套件（37 条：倒计时/计时/被攻击/胜负/超时判定/结算/Rematch/冰冻沉默/标签库）
+"$GODOT" --headless --path "$PROJ" --fixed-fps 60 res://.godot/verify_match.tscn     # 37/37，exit 0
 
 # 子模块
 git submodule update --init --recursive
@@ -135,9 +202,14 @@ export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
 ## 验证状态（截至本文件编写时）
 
 - 已验证（插件链路，场景断言套件 `.godot/verify_abilities.tscn` **32 条全过**）：加载后玩家学到 `shot`/`dash` 两个技能；敌人经插件 vital 初始化到 100/100；点击 shot → 出 2D 指示器且**默认指向最近敌人** → 松手发射 → 子弹带插件伤害效果 → 命中敌人**准确扣 10 血** → 冷却经 `CooldownFeature` 拦住第二次施放 → 冷却结束恢复；dash → 指示器指向敌人**反方向** → 位移正好 168px 且远离敌人；触摸取消不留指示器也不施放；十发把敌人打死并自毁
-- 已验证（视觉）：自动瞄准的箭头指示器、飞行中的子弹、敌人血条随插件伤害变短、按钮冷却扇形 —— 截图脚本 `.godot/shots_abilities.gd`（往 `/tmp/ab_*.png` 写图）
-- 已验证（静态/运行）：`git submodule` 就位（pin `a360f40`）；主场景 headless 跑 400 帧 0 error（只有退出时的资源残留警告，插件 teardown 自带的）；插件的 5 个 autoload 在 `project.godot` 里注册
-- 未验证：真机/模拟器安装与运行、真实触摸（手指）路径、多人同步、玩家自身的血量/受击（目前只有敌人在插件 vital 里）
+  （注：该场景已不在仓库里，见常用命令的说明）
+- 已验证（对局闭环，`.godot/verify_match.tscn` **37 条全过**，windowed/headless 都过）：开局停在 READY 且世界暂停、倒计时播报、时钟 1:00；倒计时结束自动进入 PLAYING 且时钟递减；**敌人主动射击→子弹命中玩家→一次固定扣 10 血（1.00→0.90）**，且不误伤同类；敌人全灭 → `YOU WIN` + 结算面板 + 世界冻结；Rematch 重载场景回到 READY 并恢满血；60s 到 → 按剩余血量比例判胜负（差 ≤ 5% 平局）；玩家阵亡 → `YOU LOSE`，玩家节点保留（相机），死亡后无法起预览/施放；frost 命中敌人 → `is_silenced()` 为真且敌人真的停火；标签库已注册（`TagManager.get_tag_resource(&"state.frozen") != null`）
+- 已验证（指示器生命周期，`.godot/verify_indicator.tscn`）：windowed **30/30**（含引擎真实触摸路径、瞄准方向、两个施法者互不干扰），headless **28/28 + 2 SKIP**（headless 会丢弃 `Input.parse_input_event`）。两个历史对照：指示器残留 bug 未修时该套件只能过 3/20（一次触摸出 2 个指示器并累积不清）；共享 strategy（坑 21）未修时 “two casters” 段挂 6 条
+- 已验证（视觉）：自动瞄准的箭头指示器、飞行中的子弹、敌人血条随插件伤害变短、按钮冷却扇形 —— 截图脚本 `.godot/shots_abilities.gd`（往 `/tmp/ab_*.png` 写图）；本轮的 READY（倒计时 + `GO!`）、PLAYING（时钟 + 指示器）、结算面板（`YOU LOSE` + Rematch）都已用 `game_screenshot` 看过
+- 已验证（真人实战）： `run_project` 开的窗口里手工玩了一局：被敌人打死 → 结算 `YOU LOSE` → Rematch → 新一局 READY，控制台 0 error（只有插件的 info 输出）
+- 已验证（命中反馈，`.godot/verify_feedback.tscn` **19/19**，windowed/headless 都过）：一次命中生成 1 个飘字、数值=实际伤害、位置在血条之上、约 0.75s 自毁；命中瞬间身体变白再回落；被击中 → trauma 上升 → `Camera2D.offset` 偏移 → 约 1s 后精确归零；敌人中弹播 `hit.wav`、玩家中弹播 `player_hit.wav`（更响更低）、施放播 `shoot.wav`、死亡播 `death.wav`、结算播 `win/lose`；只施放不产生飘字。真机外实测：真实窗口里 `game_get_audio` 在施放后立刻看到 2 路 `playing: true`，截图看到玩家头顶红色 `10`
+- 已验证（手雷，`.godot/verify_grenade.tscn` **18/18**，windowed/headless 都过）：瞄准时同时出现"射程环（跟随施法者）"和"落点圆"；点一下落点圆直接压在最近敌人身上；拖动 25% 射程的像素 → 落点圆落在 25% 射程处；拖过头被夹在射程边缘；松手后**爆炸正好发生在瞄准点**；圆内目标掉正好 25 血（1.00→0.75）且**不伤投掷者**；飞越中间的身体不提前爆炸（敌人血量不变，爆炸在更远处）；2s 冷却内第二次施放被拦；**爆炸圆完整**（地面贴花 z_index 高于地形，见坑 8）；截图 `/tmp/grenade_aim.png`、`/tmp/grenade_blast.png`
+- 未验证：真机/模拟器安装与运行、真实触摸（手指）路径、多人同步、多敌人（>1）时的胜负与手感（现在场上敌人固定是 main.tscn 里那一个，重开靠 `MatchDirector.restart()` 重载场景；没有生成器）
 
 > 本文件的技能章节（下方）是硬约束：**新技能 = 组合现有 Action/Effect + 参数 + 条件**，不要为每个技能写专门的脚本。
 

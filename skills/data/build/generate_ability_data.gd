@@ -22,6 +22,7 @@ const MAX_HEALTH_ATTR := ROOT + "shared/attributes/max_health.tres"
 func _ready() -> void:
 	_generate_attributes_and_vitals()
 	_generate_effects_and_statuses()
+	_generate_tags()
 	_generate_shot()
 	_generate_dash()
 	_generate_frost()
@@ -29,6 +30,8 @@ func _ready() -> void:
 	_generate_field()
 	_generate_heal()
 	_generate_loadout()
+	_generate_enemy_bolt()
+	_generate_enemy_loadout()
 	print("generate_ability_data: done")
 	get_tree().quit(0)
 
@@ -71,6 +74,29 @@ func _stat_block(max_health: GameplayAttribute, health: HealthVital) -> StatBloc
 	stats.attribute_sets = sets
 	stats.vitals = vitals
 	return stats
+#endregion
+
+#region ========== tags ==========
+## The project's tag vocabulary. Status data references these ids
+## ("status.frozen"), and the plugin's TagManager only knows the tags it was
+## given: unregistered ones make add_tag/remove_tag warn and do nothing, which
+## would also break any effect filter looking for them. main.gd registers this
+## directory at startup.
+##
+## Flat on purpose - no parent_tag_id: the plugin's initialize() marks itself
+## initialized *before* registering, so a child can be registered before its
+## parent and lose the link (plus a warning). See AGENTS.md pitfall 17.
+func _generate_tags() -> void:
+	_save(_tag(&"status", "Status"), ROOT + "shared/tags/status.tres")
+	_save(_tag(&"status.frozen", "Frozen"), ROOT + "shared/tags/status.frozen.tres")
+	_save(_tag(&"state", "State"), ROOT + "shared/tags/state.tres")
+	_save(_tag(&"state.frozen", "Frozen"), ROOT + "shared/tags/state.frozen.tres")
+
+func _tag(id: StringName, display_name: String) -> GameplayTag:
+	var tag := GameplayTag.new()
+	tag.id = id
+	tag.display_name = display_name
+	return tag
 #endregion
 
 #region ========== effects / statuses ==========
@@ -179,12 +205,15 @@ func _generate_frost() -> void:
 		ROOT + "player/frost/frost.tres")
 
 func _generate_bomb() -> void:
-	# The bomb is a slow projectile whose impact drops a short-lived damage field,
-	# i.e. the same MagicField2D used as a lasting zone, only shorter and louder.
+	# The grenade: a lobbed throw that lands on the spot the player picked inside
+	# the reach ring, then blasts a short-lived damage field (the same MagicField2D
+	# used as a lasting zone, only shorter and louder).
+	const THROW_RANGE := 420.0
 	var explosion := MagicFieldData2D.new()
 	explosion.duration = 0.3
 	explosion.tick_interval = 0.0
-	explosion.radius = 90.0
+	# Blast radius: the "small area" the player aims at inside the reach ring.
+	explosion.radius = 95.0
 	explosion.color = Color(1.0, 0.55, 0.2, 0.3)
 	explosion.target_group = &"enemies"
 	explosion.field_scene = load(FIELD_SCENE)
@@ -193,25 +222,39 @@ func _generate_bomb() -> void:
 	_save(explosion, ROOT + "player/bomb/explosion.tres")
 
 	var bomb := ProjectileData2D.new()
-	bomb.speed = 380.0
-	bomb.max_distance = 420.0
+	bomb.speed = 520.0
+	bomb.max_distance = THROW_RANGE
 	bomb.projectile_scene = load(PROJECTILE_SCENE)
 	bomb.impact_field = explosion
+	# Lobbed: it sails over whatever is in the way and only goes off on landing.
+	bomb.lob = true
+	bomb.lob_height = 32.0
+	bomb.spin_speed = 15.0
 	_save(bomb, ROOT + "player/bomb/bomb.tres")
 
-	# Circle previews show where the effect lands (clamped to max_range) and how
-	# big it is, so the radius here is the blast radius, not the throw range.
+	# Blast circle: where the blast will land (radius = blast radius).
 	var indicator := SkillIndicatorData.new()
 	indicator.shape = SkillIndicatorData.Shape.CIRCLE
-	indicator.length = 90.0
-	indicator.fill_color = Color(1.0, 0.55, 0.2, 0.12)
-	indicator.outline_color = Color(1.0, 0.65, 0.3, 0.9)
+	indicator.length = 95.0
+	indicator.fill_color = Color(1.0, 0.55, 0.2, 0.14)
+	indicator.outline_color = Color(1.0, 0.65, 0.3, 0.95)
 	_save(indicator, ROOT + "player/bomb/indicator.tres")
-	_save(_directional_preview(ROOT + "player/bomb/indicator.tres", IndicatorPreview2D.DefaultAim.TO_TARGET, 420.0),
+
+	# Reach ring: the radius the player may choose a spot inside, drawn around the
+	# caster while aiming. Faint, because it is only a range hint.
+	var reach := SkillIndicatorData.new()
+	reach.shape = SkillIndicatorData.Shape.CIRCLE
+	reach.length = THROW_RANGE
+	reach.fill_color = Color(0.98, 0.72, 0.25, 0.05)
+	reach.outline_color = Color(0.98, 0.78, 0.4, 0.35)
+	_save(reach, ROOT + "player/bomb/range.tres")
+
+	_save(_ground_preview(ROOT + "player/bomb/indicator.tres", ROOT + "player/bomb/range.tres", THROW_RANGE),
 		ROOT + "player/bomb/preview.tres")
 
-	_save(_ability(&"bomb", "Bomb", "Throw a bomb: it explodes on impact for 25 damage in a 90px blast.",
-		2.0, [ROOT + "player/bomb/preview.tres"], _tree([_commit_cooldown(), _spawn_projectile(bomb)])),
+	_save(_ability(&"bomb", "Bomb", "Throw a grenade: pick a spot inside the ring (tap = nearest enemy), it lands there and blasts 25 damage in 95px.",
+		2.0, [ROOT + "player/bomb/preview.tres"],
+		_tree([_commit_cooldown(), _spawn_projectile(bomb, "target_position")])),
 		ROOT + "player/bomb/bomb_skill.tres")
 
 func _generate_field() -> void:
@@ -265,6 +308,35 @@ func _generate_loadout() -> void:
 	_save(loadout, ROOT + "player/loadout.tres")
 #endregion
 
+#region ========== enemy skills (cast by AiAbilityRouter, never previewed) ==========
+func _generate_enemy_bolt() -> void:
+	var bolt := ProjectileData2D.new()
+	# Slower than the player's bullet: the player is meant to dodge it.
+	bolt.speed = 330.0
+	bolt.max_distance = 560.0
+	bolt.projectile_scene = load(PROJECTILE_SCENE)
+	# Enemy fire only hurts the player: an Area2D cannot tell friend from foe, so
+	# the projectile filters the bodies it may damage by group.
+	bolt.target_group = &"players"
+	var payload: Array[GameplayEffect] = [load(ROOT + "shared/effects/bullet_damage.tres")]
+	bolt.payload_effects = payload
+	_save(bolt, ROOT + "enemy/bolt/bolt.tres")
+
+	# No preview strategy: an AI aims through the cast context, so it never touches
+	# the preview strategy resource that every caster of a definition shares.
+	_save(_ability(&"bolt", "Bolt", "Enemy shot: 10 damage to whoever it hits.",
+		1.4, [], _tree([_commit_cooldown(), _spawn_projectile(bolt)])),
+		ROOT + "enemy/bolt/bolt_skill.tres")
+
+func _generate_enemy_loadout() -> void:
+	var bolt := load(ROOT + "enemy/bolt/bolt_skill.tres") as GameplayAbilityDefinition
+	var loadout := AbilityLoadout2D.new()
+	var equipped: Array[GameplayAbilityDefinition] = [bolt]
+	loadout.abilities = equipped
+	loadout.inventory = equipped
+	_save(loadout, ROOT + "enemy/loadout.tres")
+#endregion
+
 #region ========== builders ==========
 func _ability(id: StringName, name: String, description: String, cooldown: float,
 		preview_paths: Array, tree: GAS_BTNode) -> GameplayAbilityDefinition:
@@ -307,11 +379,13 @@ func _apply_effects(target_key: String, effects: Array[GameplayEffect]) -> Abili
 	apply.target_key = target_key
 	return apply
 
-func _spawn_projectile(data: ProjectileData2D) -> AbilityNodeSpawnProjectile2D:
+func _spawn_projectile(data: ProjectileData2D, landing_key: String = "") -> AbilityNodeSpawnProjectile2D:
 	var spawn := AbilityNodeSpawnProjectile2D.new()
 	spawn.node_id = &"spawn_projectile"
 	spawn.projectile_data = data
 	spawn.direction_key = "target_direction"
+	# Thrown skills land on the point the preview picked; shots just fly a direction.
+	spawn.target_position_key = landing_key
 	return spawn
 
 func _spawn_field(data: MagicFieldData2D) -> AbilityNodeSpawnMagicField2D:
@@ -330,6 +404,18 @@ func _arrow_indicator(length: float, width: float, fill: Color, outline: Color) 
 	indicator.outline_color = outline
 	return indicator
 
+## Preview for a thrown/ground skill: a reach ring around the caster plus a blast
+## circle the player places inside it (POSITION targeting).
+func _ground_preview(indicator_path: String, range_path: String, max_range: float) -> IndicatorPreview2D:
+	var preview := IndicatorPreview2D.new()
+	preview.targeting = IndicatorPreview2D.Targeting.POSITION
+	preview.indicator_data = load(indicator_path)
+	preview.range_indicator_data = load(range_path)
+	preview.default_aim = IndicatorPreview2D.DefaultAim.TO_TARGET
+	preview.target_group = &"enemies"
+	preview.max_range = max_range
+	return preview
+
 func _directional_preview(indicator_path: String, aim: int, max_range: float) -> IndicatorPreview2D:
 	var preview := IndicatorPreview2D.new()
 	preview.indicator_data = load(indicator_path)
@@ -341,8 +427,35 @@ func _directional_preview(indicator_path: String, aim: int, max_range: float) ->
 
 func _save(resource: Resource, path: String) -> void:
 	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
+	# Keep the uid this path already had. The editor (and every .tscn/.tres that
+	# references this file as uid://...) knows that id, but ResourceSaver outside the
+	# editor writes **no** uid for a plain resource - which is how referencing files
+	# end up with "invalid UID ... using text path instead" warnings after a
+	# regeneration. The uid lives in the file header, so it survives a fresh clone.
+	var uid := ResourceLoader.get_resource_uid(path)
 	var error := ResourceSaver.save(resource, path)
 	if error != OK:
 		push_error("Failed to save %s (%d)" % [path, error])
-	else:
-		print("  wrote ", path)
+		return
+	if uid != ResourceUID.INVALID_ID:
+		_restore_uid(path, ResourceUID.id_to_text(uid))
+	print("  wrote ", path)
+
+## Puts ` uid="uid://..."` back into the `[gd_resource ...]` header line.
+func _restore_uid(path: String, uid: String) -> void:
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return
+	var lines := file.get_as_text().split("\n")
+	file.close()
+	if lines.is_empty() or not lines[0].begins_with("[gd_resource") or lines[0].contains("uid=\""):
+		return
+	if not lines[0].ends_with("]"):
+		return
+	lines[0] = lines[0].substr(0, lines[0].length() - 1) + " uid=\"%s\"]" % uid
+	var out := FileAccess.open(path, FileAccess.WRITE)
+	if out == null:
+		push_warning("Could not restore the uid of %s" % path)
+		return
+	out.store_string("\n".join(lines))
+	out.close()

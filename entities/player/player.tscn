@@ -2,18 +2,23 @@
 
 [ext_resource type="Script" uid="uid://bmmwtu2x6ev6v" path="res://entities/player/player.gd" id="1_abrql"]
 [ext_resource type="Shape2D" path="res://entities/player/player_shape.tres" id="2_sglur"]
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/components/gameplay_ability_component.gd" id="3_abilities"]
-[ext_resource type="Script" path="res://skills/two_d/ability_input_router.gd" id="4_router"]
-[ext_resource type="Resource" path="res://skills/data/player/loadout.tres" id="5_loadout"]
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/components/gameplay_vital_attribute_component.gd" id="6_vitals"]
-[ext_resource type="Resource" path="res://skills/data/shared/vitals/player_stats.tres" id="7_stats"]
+[ext_resource type="Script" uid="uid://n8p5beakef7b" path="res://addons/godot_ability_system/scripts/components/gameplay_ability_component.gd" id="3_abilities"]
+[ext_resource type="Script" uid="uid://d0s6wnd5qkkfs" path="res://entities/player/player_camera.gd" id="4_26q78"]
+[ext_resource type="Script" uid="uid://6bwbsacx5ug0" path="res://skills/two_d/ability_input_router.gd" id="4_router"]
+[ext_resource type="Resource" uid="uid://ly37nnck0wo3" path="res://skills/data/player/loadout.tres" id="5_loadout"]
+[ext_resource type="Script" uid="uid://bhopvoj74pcwj" path="res://addons/godot_ability_system/scripts/components/gameplay_vital_attribute_component.gd" id="6_vitals"]
+[ext_resource type="Resource" uid="uid://bipj84n3jb0uj" path="res://skills/data/shared/vitals/player_stats.tres" id="7_stats"]
 
 [node name="Player" type="CharacterBody2D" unique_id=1803391748 groups=["players"]]
 y_sort_enabled = true
-motion_mode = 1
 collision_layer = 2
 collision_mask = 3
+motion_mode = 1
 script = ExtResource("1_abrql")
+speed = null
+acceleration = null
+friction = null
+hit_flash_time = null
 stats = ExtResource("7_stats")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1710187449]
@@ -29,13 +34,15 @@ limit_right = 1280
 limit_bottom = 704
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
+script = ExtResource("4_26q78")
 
-[node name="GameplayVitalAttributeComponent" type="Node" parent="."]
+[node name="GameplayVitalAttributeComponent" type="Node" parent="." unique_id=1274918865]
 script = ExtResource("6_vitals")
 
-[node name="Abilities" type="Node" parent="."]
+[node name="Abilities" type="Node" parent="." unique_id=709784528]
 script = ExtResource("3_abilities")
 
-[node name="InputRouter" type="Node" parent="."]
+[node name="InputRouter" type="Node" parent="." unique_id=721477105]
 script = ExtResource("4_router")
 loadout = ExtResource("5_loadout")
+aim_dead_zone = null

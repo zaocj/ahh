@@ -11,6 +11,16 @@ class_name ProjectileData2D
 ## Flies this far, then despawns; keep it equal to the skill's indicator length.
 @export var max_distance: float = 480.0
 
+@export_group("Flight")
+## Lobbed shots sail over everything and detonate at the end of their range, like a
+## thrown grenade: they must not be stopped by the first body or wall they brush.
+@export var lob: bool = false
+## Visual arc height of a lob; the collision stays on the straight line so the
+## landing point is exactly where the player aimed.
+@export var lob_height: float = 30.0
+## Tumble speed for a lobbed projectile, in radians per second.
+@export var spin_speed: float = 14.0
+
 @export_group("Scene")
 ## The 2D projectile scene (must expose launch(direction, speed, max_distance)).
 @export var projectile_scene: PackedScene
@@ -21,3 +31,8 @@ class_name ProjectileData2D
 ## Field dropped at the impact point / end of flight: this is how the bomb
 ## explodes (the same MagicField2D used for a lasting sigil, only shorter).
 @export var impact_field: MagicFieldData2D = null
+
+@export_group("Targets")
+## Group this projectile may damage; empty = anything damageable. Enemy bolts use
+## `players` so they pass through other enemies instead of friendly-firing them.
+@export var target_group: StringName = &""

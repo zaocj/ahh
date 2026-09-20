@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="IndicatorPreview2D" format=3]
+[gd_resource type="Resource" script_class="IndicatorPreview2D" format=3 uid="uid://bekwbpwnjgsnj"]
 
-[ext_resource type="Resource" path="res://skills/data/player/shot/indicator.tres" id="1_2bbu0"]
-[ext_resource type="Script" path="res://skills/two_d/indicator_preview_2d.gd" id="2_q3j34"]
+[ext_resource type="Resource" uid="uid://dnj4yxgn0jpc5" path="res://skills/data/player/shot/indicator.tres" id="1_2bbu0"]
+[ext_resource type="Script" uid="uid://boq5oetvegoqs" path="res://skills/two_d/indicator_preview_2d.gd" id="2_q3j34"]
 
 [resource]
 script = ExtResource("2_q3j34")

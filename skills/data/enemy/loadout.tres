@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="AbilityLoadout2D" format=3 uid="uid://dsb1nlsbvjv2"]
+
+[ext_resource type="Script" uid="uid://bm4h231fb21pv" path="res://addons/godot_ability_system/scripts/abilities/gameplay_ability_definition.gd" id="1_52ex7"]
+[ext_resource type="Resource" uid="uid://c6ljng2ildku0" path="res://skills/data/enemy/bolt/bolt_skill.tres" id="2_6kufv"]
+[ext_resource type="Script" uid="uid://dygdw6xsxo8kr" path="res://skills/two_d/ability_loadout_2d.gd" id="3_0ylt4"]
+
+[resource]
+script = ExtResource("3_0ylt4")
+abilities = Array[ExtResource("1_52ex7")]([ExtResource("2_6kufv")])
+inventory = Array[ExtResource("1_52ex7")]([ExtResource("2_6kufv")])
