@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://s4yw6rfkfgto" path="res://entities/player/player.tscn" id="5_4dugh"]
 [ext_resource type="Script" uid="uid://bypqceqng7jru" path="res://ui/hud/virtual_joystick.gd" id="5_85g3d"]
 [ext_resource type="Script" path="res://ui/hud/skill_button.gd" id="6_skillbtn"]
+[ext_resource type="PackedScene" path="res://entities/enemy/enemy.tscn" id="7_enemy"]
 
 [node name="Main" type="Node2D" unique_id=750140780]
 y_sort_enabled = true
@@ -47,6 +48,7 @@ offset_bottom = -56.0
 grow_horizontal = 0
 grow_vertical = 0
 script = ExtResource("6_skillbtn")
+button_color = Color(0.98, 0.72, 0.25, 1)
 
 [node name="SkillDash" type="Control" parent="HUD"]
 layout_mode = 3
@@ -62,8 +64,12 @@ offset_bottom = -66.0
 grow_horizontal = 0
 grow_vertical = 0
 script = ExtResource("6_skillbtn")
+button_color = Color(0.42, 0.86, 0.55, 1)
 
 [node name="Player" parent="." unique_id=1803391748 instance=ExtResource("5_4dugh")]
 position = Vector2(656, 368)
 
 [node name="Arena01" type="Node2D" parent="." unique_id=1918824252 instance=ExtResource("4_kfbq2")]
+
+[node name="Enemy" parent="." instance=ExtResource("7_enemy")]
+position = Vector2(830, 260)

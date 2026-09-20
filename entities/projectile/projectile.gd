@@ -1,23 +1,31 @@
 class_name Projectile
 extends Area2D
-## Generic flying projectile: constant speed along one direction, gone once it
-## has travelled `max_distance` or touched anything solid.
+## 2D projectile transport: flies in a straight line, then hands what it hit to
+## the payload the ability system configured on it.
 ##
-## Skills spawn and parameterise it (see skills/actions/spawn_projectile_action.gd);
-## it never reaches back into the skill that fired it.
+## Payloads are plugin GameplayEffects (damage, statuses, ...), so this scene
+## stays dumb: it only knows how to fly and who fired it. It replaces the
+## plugin's ProjectileBase, which is 3D only (CharacterBody3D + Transform3D).
 ##
 ## Collision layers: 1 = world/walls, 2 = characters, 3 = projectiles.
 ## The projectile scans 1 and 2, and ignores whoever fired it.
 
 signal travelled(distance: float)
+signal impacted(target: Node)
+
+## Component name the plugin looks damage up through; entities without it (walls,
+## scenery) are simply not damageable.
+const VITAL_COMPONENT: String = "GameplayVitalAttributeComponent"
 
 @export var speed: float = 520.0
 @export var max_distance: float = 480.0
 
 var direction: Vector2 = Vector2.RIGHT
 var distance_travelled: float = 0.0
-
-var _caster: Node = null
+## Effects applied to whatever it hits; filled in by the ability that fired it.
+var payload_effects: Array[GameplayEffect] = []
+## Who fired it: the effect instigator, and never a valid target.
+var instigator: Node = null
 
 @onready var _body: Polygon2D = $Body
 @onready var _collision: CollisionShape2D = $CollisionShape2D
@@ -27,15 +35,13 @@ func _ready() -> void:
 	rotation = direction.angle()
 	body_entered.connect(_on_body_entered)
 
-## Applies the launch parameters. `caster` is ignored on impact so a shot cannot
-## hit whoever fired it.
-func launch(new_direction: Vector2, launch_speed: float, range_distance: float, caster: Node = null) -> void:
+## Applies the launch parameters (payload is set separately by the ability).
+func launch(new_direction: Vector2, launch_speed: float, range_distance: float) -> void:
 	direction = new_direction.normalized()
 	if direction == Vector2.ZERO:
 		direction = Vector2.RIGHT
 	speed = launch_speed
 	max_distance = range_distance
-	_caster = caster
 	rotation = direction.angle()
 
 func _physics_process(delta: float) -> void:
@@ -47,9 +53,23 @@ func _physics_process(delta: float) -> void:
 		queue_free()
 
 func _on_body_entered(body: Node2D) -> void:
-	if body == _caster:
+	if body == instigator:
 		return
+	_deliver_payload(body)
+	impacted.emit(body)
 	queue_free()
+
+func _deliver_payload(target: Node) -> void:
+	if payload_effects.is_empty() or not _is_damageable(target):
+		return
+	var context := {"source_node": self}
+	for effect in payload_effects:
+		if is_instance_valid(effect):
+			# Clone per hit: effects keep runtime state.
+			(effect.duplicate(true) as GameplayEffect).apply(target, instigator, context)
+
+func _is_damageable(target: Node) -> bool:
+	return target.has_method("get_gameplay_vital_attribute_component") or target.has_node(VITAL_COMPONENT)
 
 ## Mirrors Player: the placeholder block is derived from the collision shape so
 ## no PackedVector2Array has to be stored in the scene.

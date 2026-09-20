@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="GameplayAttribute" format=3]
+
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/attributes/gameplay_attribute.gd" id="1_7y4o4"]
+
+[resource]
+script = ExtResource("1_7y4o4")
+attribute_id = &"attack"
+attribute_display_name = "Attack"
+min_value = 0.0

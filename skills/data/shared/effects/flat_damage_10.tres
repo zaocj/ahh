@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="FlatDamageLogic" format=3]
+
+[ext_resource type="Script" path="res://skills/two_d/flat_damage_logic.gd" id="1_mctx0"]
+
+[resource]
+script = ExtResource("1_mctx0")

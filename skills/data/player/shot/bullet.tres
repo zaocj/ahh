@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ProjectileData2D" format=3]
+
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/effects/gameplay_effect.gd" id="1_1iii0"]
+[ext_resource type="Resource" path="res://skills/data/shared/effects/bullet_damage.tres" id="2_hg508"]
+[ext_resource type="PackedScene" path="res://entities/projectile/projectile.tscn" id="3_gdrxl"]
+[ext_resource type="Script" path="res://skills/two_d/projectile_data_2d.gd" id="4_snqfl"]
+
+[resource]
+script = ExtResource("4_snqfl")
+projectile_scene = ExtResource("3_gdrxl")
+payload_effects = Array[ExtResource("1_1iii0")]([ExtResource("2_hg508")])

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="AbilityLoadout2D" format=3]
+
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/gameplay_ability_definition.gd" id="1_a6sm1"]
+[ext_resource type="Resource" path="res://skills/data/player/shot/shot.tres" id="2_r357u"]
+[ext_resource type="Resource" path="res://skills/data/player/dash/dash.tres" id="3_1lpv0"]
+[ext_resource type="Script" path="res://skills/two_d/ability_loadout_2d.gd" id="4_846p4"]
+
+[resource]
+script = ExtResource("4_846p4")
+abilities = Array[ExtResource("1_a6sm1")]([ExtResource("2_r357u"), ExtResource("3_1lpv0")])

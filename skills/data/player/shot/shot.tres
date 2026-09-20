@@ -1,0 +1,58 @@
+[gd_resource type="Resource" script_class="GameplayAbilityDefinition" format=3]
+
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/behavior_tree/bt_node.gd" id="1_nvy7o"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/ability_nodes/ability_node_commit_cooldown.gd" id="2_4ua68"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/effects/gameplay_effect.gd" id="3_eb3qo"]
+[ext_resource type="Resource" path="res://skills/data/shared/effects/bullet_damage.tres" id="4_3ri5p"]
+[ext_resource type="PackedScene" path="res://entities/projectile/projectile.tscn" id="5_mr7cy"]
+[ext_resource type="Script" path="res://skills/two_d/projectile_data_2d.gd" id="6_u03va"]
+[ext_resource type="Script" path="res://skills/two_d/ability_node_spawn_projectile_2d.gd" id="7_wbqb3"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/behavior_tree/composites/bt_sequence.gd" id="8_vp61m"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/features/gameplay_ability_feature.gd" id="9_7imj1"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/features/cooldown_feature.gd" id="10_ylayt"]
+[ext_resource type="Script" path="res://skills/two_d/skill_indicator_data.gd" id="11_7ywg6"]
+[ext_resource type="Script" path="res://skills/two_d/indicator_preview_2d.gd" id="12_pgdpb"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/gameplay_ability_definition.gd" id="13_723ee"]
+
+[sub_resource type="Resource" id="Resource_gf5vp"]
+script = ExtResource("2_4ua68")
+node_id = &"commit_cooldown"
+
+[sub_resource type="Resource" id="Resource_u67b3"]
+script = ExtResource("6_u03va")
+projectile_scene = ExtResource("5_mr7cy")
+payload_effects = Array[ExtResource("3_eb3qo")]([ExtResource("4_3ri5p")])
+
+[sub_resource type="Resource" id="Resource_alywt"]
+script = ExtResource("7_wbqb3")
+projectile_data = SubResource("Resource_u67b3")
+node_id = &"spawn_projectile"
+
+[sub_resource type="Resource" id="Resource_qdu02"]
+script = ExtResource("8_vp61m")
+children = Array[ExtResource("1_nvy7o")]([SubResource("Resource_gf5vp"), SubResource("Resource_alywt")])
+node_id = &"shot_sequence"
+
+[sub_resource type="Resource" id="Resource_4gss6"]
+script = ExtResource("10_ylayt")
+cooldown_duration = 1.0
+
+[sub_resource type="Resource" id="Resource_047hw"]
+script = ExtResource("11_7ywg6")
+length = 480.0
+head_length = 56.0
+fill_color = Color(0.98, 0.72, 0.25, 0.2)
+outline_color = Color(1, 0.85, 0.45, 0.9)
+
+[sub_resource type="Resource" id="Resource_q5jbi"]
+script = ExtResource("12_pgdpb")
+indicator_data = SubResource("Resource_047hw")
+
+[resource]
+script = ExtResource("13_723ee")
+ability_id = &"shot"
+ability_name = "Shot"
+description = "Fires a bullet straight ahead; tap auto-aims at the nearest enemy."
+preview_strategy = SubResource("Resource_q5jbi")
+features = Array[ExtResource("9_7imj1")]([SubResource("Resource_4gss6")])
+execution_tree = SubResource("Resource_qdu02")

@@ -2,16 +2,15 @@
 
 [ext_resource type="Script" uid="uid://bmmwtu2x6ev6v" path="res://entities/player/player.gd" id="1_abrql"]
 [ext_resource type="Shape2D" path="res://entities/player/player_shape.tres" id="2_sglur"]
-[ext_resource type="Script" path="res://skills/core/skill_controller.gd" id="3_skills"]
-[ext_resource type="Script" path="res://skills/core/skill_indicator.gd" id="4_indicator"]
-[ext_resource type="Resource" path="res://skills/data/player/bullet_shot/bullet_shot.tres" id="5_bullet"]
-[ext_resource type="Resource" path="res://skills/data/player/dash/dash.tres" id="6_dash"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/components/gameplay_ability_component.gd" id="3_abilities"]
+[ext_resource type="Script" path="res://skills/two_d/ability_input_router.gd" id="4_router"]
+[ext_resource type="Resource" path="res://skills/data/player/loadout.tres" id="5_loadout"]
 
-[node name="Player" type="CharacterBody2D" unique_id=1803391748]
+[node name="Player" type="CharacterBody2D" unique_id=1803391748 groups=["players"]]
 y_sort_enabled = true
 motion_mode = 1
 collision_layer = 2
-collision_mask = 1
+collision_mask = 3
 script = ExtResource("1_abrql")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1710187449]
@@ -28,9 +27,9 @@ limit_bottom = 704
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
 
-[node name="Skills" type="Node" parent="." unique_id=1149281367]
-script = ExtResource("3_skills")
-skills = Array[SkillData]([ExtResource("5_bullet"), ExtResource("6_dash")])
+[node name="Abilities" type="Node" parent="."]
+script = ExtResource("3_abilities")
 
-[node name="Indicator" type="Node2D" parent="Skills" unique_id=1240298377]
-script = ExtResource("4_indicator")
+[node name="InputRouter" type="Node" parent="."]
+script = ExtResource("4_router")
+loadout = ExtResource("5_loadout")

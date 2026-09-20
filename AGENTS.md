@@ -16,24 +16,26 @@
 
 | 路径 | 放什么 | 现状 |
 |---|---|---|
-| `addons/godot_agent_loop/` | 编辑器插件（MCP 桥，`@tool extends EditorPlugin`）。**只在编辑器里跑，不进游戏包**（导出预设已 `exclude_filter="addons/*"`） | 有内容 |
+| `addons/godot_agent_loop/` | 编辑器插件（MCP 桥，`@tool extends EditorPlugin`）。**只在编辑器里跑**，导出预设已把它排除 | 有内容 |
+| `addons/godot_ability_system/` | **技能系统插件（git 子模块**，MIT，pin 在 `a360f40`，[LiGameAcademy/godot_ability_system](https://github.com/LiGameAcademy/godot_ability_system)）。技能定义/特性/冷却/行为树/属性/血条 vital/效果/状态/标签/伤害计算都在这里。**不要改子模块里的文件**（升级会冲突），要扩展就在 `skills/two_d/` 里继承它的类。它是**3D-first**的（见下方"技能系统"） | 有内容（子模块） |
 | `assets/textures/` | 共享原始素材。现有 `terrain_atlas.png` = 程序化生成的 4 格图集（地面 / 地面变体 / 墙 / 地台） | 有内容 |
 | `assets/audio/` `assets/fonts/` | 音频 / 字体原始素材 | 空（占位） |
 | `core/battle/` | 战斗编排（回合调度、胜负判定、计分） | 空（占位） |
 | `core/network/` | 联网（同步、房间、消息） | 空（占位） |
 | `core/events/` | 全局事件总线 / 信号中枢 | 空（占位） |
-| `core/utils/` | 跨功能工具函数 | 空（占位） |
-| `entities/base/` | 实体基类（entity.gd / entity.tscn） | 空（占位） |
-| `entities/player/` | **玩家**：`player.gd` + `player.tscn` + `player_shape.tres` | 有内容 |
-| `entities/projectile/` | **投射物**：`projectile.gd` + `projectile.tscn` + `projectile_shape.tres`（匀速直飞，撞墙或飞满 `max_distance` 自毁） | 有内容 |
+| `core/utils/` | 跨功能工具函数。现有 `targets.gd`（`Targets.nearest()` / `offset_to_nearest()`：按 group 找最近目标，技能自动瞄准与敌人追击共用） | 有内容 |
+| `entities/base/` | 可复用实体基类 | 空（占位，血量改用插件的 vital） |
+| `entities/player/` | **玩家**：`player.gd` + `player.tscn` + `player_shape.tres`（`facing` / `dash()` / `is_dashing()`，group `players`） | 有内容 |
+| `entities/projectile/` | **投射物**：`projectile.gd` + `projectile.tscn` + `projectile_shape.tres`（匀速直飞，撞墙/打到实体/飞满 `max_distance` 自毁） | 有内容 |
+| `entities/enemy/` | **敌人**：`enemy.gd` + `enemy.tscn` + `enemy_shape.tres`（追 `target_group` 里最近的目标，到 `stop_distance` 停下；自带 `Health` 与血条） | 有内容 |
 | `entities/hitbox/` | 命中判定盒 | 空（占位） |
 | `entities/pickup/` | 拾取物（能量块、补给） | 空（占位） |
 | `heroes/base/` | 英雄基类（hero.gd / hero.tscn / hero_data.tres） | 空（占位） |
 | `heroes/<hero>/` | **一个英雄一个自包含目录**：`<hero>.gd` `<hero>.tscn` `<hero>_data.tres` 图标/立绘、以及该英雄专属 `skills/` | 空（占位：`warrior/` `ranger/` `assassin/`） |
-| `skills/core/` | 技能框架：`skill_data.gd`（技能配置）`skill_action.gd`（动作基类）`skill_context.gd`（本次施放上下文）`skill_executor.gd`（跑动作）`skill_controller.gd`（冷却 / 瞄准 / 施放）`skill_indicator.gd` + `skill_indicator_data.gd`（通用指示器） | 有内容 |
-| `skills/actions/` | **可复用动作**：`spawn_projectile_action.gd`、`dash_action.gd`。新行为优先加成这里的动作，而不是给某个技能写脚本 | 有内容 |
-| `skills/effects/` | 可复用效果（burn / slow / poison / shield …） | 空（占位） |
-| `skills/data/<owner>/<skill>/` | **一个技能一个目录**：`<skill>.tres`（SkillData）+ `indicator.tres`（SkillIndicatorData）。只放数据，不放逻辑 | 有内容（`player/bullet_shot`、`player/dash`） |
+| `skills/two_d/` | **插件的 2D 适配层**（插件本体在 3D 侧，2D 项目必须自己补）：`indicator_preview_2d.gd`（2D 瞄准指示器 + 默认朝向）、`ability_node_spawn_projectile_2d.gd`（行为树节点：发射 2D 投射物）、`projectile_data_2d.gd`、`ge_dash_2d.gd`（2D 位移效果）、`flat_damage_logic.gd`（固定伤害策略）、`ability_input_router.gd`（按钮 → 插件生命周期）、`ability_loadout_2d.gd` / `stat_block_2d.gd`（把数组型配置塞进 `.tres`）、`skill_indicator.gd` + `skill_indicator_data.gd`（2D 指示器绘制） | 有内容 |
+| `skills/data/shared/` | 跨技能共用数据：属性（`max_health`…）、`vitals/health.tres`、`enemy_stats.tres`（属性集 + vital）、`effects/bullet_damage.tres`（GE_ApplyDamage + 固定 10） | 有内容 |
+| `skills/data/player/<skill>/` | **一个技能一个目录**：`<skill>.tres`（GameplayAbilityDefinition：特性 + 行为树 + 预览策略）、`preview.tres`、`indicator.tres`、以及该技能的子弹数据 | 有内容（`shot/`、`dash/`、`loadout.tres`） |
+| `skills/data/build/` | `generate_ability_data.gd/.tscn`：一键生成上面这些 `.tres`（嵌套资源手写易错）。**只在加/改技能结构时跑一次**，之后在编辑器里改 `.tres` | 有内容 |
 | `maps/arena_01/` | **一张地图一个目录**：`arena_01.tscn`（根 `Arena01` + 子 `Terrain` TileMapLayer）、`arena_01_tileset.tres`、`terrain.gd`（按 ASCII 地图刷格） | 有内容 |
 | `ui/hud/` | 局内 HUD。现有 `virtual_joystick.gd`（触摸/鼠标摇杆）、`skill_button.gd`（技能按钮：短按直接施放，长按/拖动瞄准） | 有内容 |
 | `ui/battle/` | 对局内其它界面（倒计时、结算） | 空（占位） |
@@ -53,20 +55,25 @@
 main/main.tscn        Main (Node2D, y_sort_enabled)
                       ├── HUD (CanvasLayer) → Status (Label) + Joystick (Control, virtual_joystick.gd)
                       │                    → SkillBullet / SkillDash (Control, skill_button.gd)
-                      ├── Player   ← 实例：entities/player/player.tscn（position 覆盖为出生点 656,368）
-                      │   └── Skills (SkillController) → Indicator (SkillIndicator)
-                      └── Arena01  ← 实例：maps/arena_01/arena_01.tscn → Terrain (TileMapLayer)
+                      ├── Player   ← 实例：entities/player/player.tscn（position 覆盖为出生点 656,368，group: players）
+                      │   ├── Abilities  (GameplayAbilityComponent，插件)
+                      │   └── InputRouter (AbilityInputRouter：按钮 → 插件施放流程)
+                      ├── Arena01  ← 实例：maps/arena_01/arena_01.tscn → Terrain (TileMapLayer)
+                      └── Enemy    ← 实例：entities/enemy/enemy.tscn（position 830,260）
 ```
 
 - **输入**：`project.godot` 里 4 个命名 action（`move_left/right/up/down`，WASD + 方向键）。`player.gd` 用 `Input.get_vector()` 读它们，摇杆则通过 `player.joystick_input` 汇入同一入口。→ 加新操作请加命名 action，不要用 `ui_*`。
 - **玩家视觉**：`Player/Body` 是 `Polygon2D`，颜色即"有色方块"。换成正式 Sprite 时删掉 `player.gd` 里推导多边形的代码即可。
-- **技能**：HUD 按钮 → `SkillController.press/drag/release(slot, 按钮中心相对坐标)`。短按（≤ `tap_max_duration` 且几乎没拖动）朝 `caster.facing` 直接施放；长按进瞄准状态，按技能自带的 `SkillData.indicator` 显示指示器，拖动方向覆盖朝向，松手施放。冷却由控制器按 slot 记账并广播 `cooldown_changed(slot, remaining, total)`，按钮画成扇形遮罩。
-  施放路径：`SkillController.cast()` → 建 `SkillContext`（caster / origin / direction / world）→ `SkillExecutor.execute()` → 依次跑 `SkillData.actions`。**动作只读 context，不认识具体英雄**。
-- **加一个新技能**：先在 `skills/data/<owner>/<skill>/` 写两个 `.tres`（`<skill>.tres` 的 `actions` 里塞现有动作 + `indicator.tres`），再在 `player.tscn` 的 `Skills.skills` 数组里加一项、在 `main.gd::skill_buttons` 里加一个按钮。只有行为确实不可复用时，才去 `skills/actions/` 加新动作（并同时在 `SkillContext` 里考虑要不要加字段）。
-- **碰撞层约定**：layer 1 = 地形/墙，layer 2 = 角色，layer 3 = 投射物。投射物 `collision_layer = 4` / `collision_mask = 3`，靠 `_caster` 引用忽略发射者自己（Godot 4.7 **没有** `add_collision_exception_with()`，别照旧文档写）。
+- **技能**：由插件驱动，一条链路是
+  `HUD 按钮 → AbilityInputRouter.press/drag/release → GameplayAbilityComponent.request_ability_preview() / update_targeting() / confirm_targeting() / try_activate_ability()`。
+  **按下**就进预览（指示器立刻出现，响应快），**拖动**超过 `aim_dead_zone` 才覆盖默认朝向，**松手**用 `confirm_targeting()` 的结果施放；所以"点一下"永远走技能的默认方向。冷却、消耗、执行全部在插件里（`CooldownFeature` / `CommitCooldown` 节点 / 行为树）；按钮的扇形遮罩读 `CooldownFeature.get_cooldown_progress()`（`main.gd::_process` 每帧同步）。
+- **默认朝向（自动瞄准）**在 `IndicatorPreview2D.default_aim` 上：`FACING` / `TO_TARGET`（朝 `target_group` 里最近目标）/ `AWAY_FROM_TARGET`（反向，后撤 dash）。当前 `shot` = `TO_TARGET`、`dash` = `AWAY_FROM_TARGET`，`target_group` 都是 `enemies`（敌人预制已加入该 group）。没有目标时回退 `facing`。
+- **施放结果怎么传到行为树**：预览策略的 `get_result_context()` 返回 `target_direction`（Vector2）/ `target_position`，插件把它作为 context 交给行为树；`AbilityNodeSpawnProjectile2D` 读 `target_direction`，`GE_Dash2D` 也读它。**context 里必须始终带一个 `targets` 数组**（哪怕为空）——见坑 10。
+- **加一个新技能**：先在 `skills/data/build/generate_ability_data.gd` 里照着现有段落拼出来（特性 + 行为树 + 预览策略），跑一次 `generate_ability_data.tscn` 生成 `.tres`，把它加进 `skills/data/player/loadout.tres`，再在 `main.tscn` 的 HUD 里加一个 `SkillButton`（顺序 = 槽位顺序）。之后数值都在编辑器里改 `.tres`。**不要给技能写专门的脚本**：优先用插件的特性 + 行为树节点 + 效果组合。
+- **伤害路径**：投射物不改血量，它带一串插件 `GameplayEffect`（`payload_effects`，来自 `ProjectileData2D`），命中时 `effect.apply(target, instigator, context)` → `GE_ApplyDamage` → `DamageCalculator`（这里配的是 `FlatDamageLogic` 固定 10）→ 目标的 `GameplayVitalAttributeComponent` → `HealthVital.apply_damage()`。所以**可被打 = 有 `GameplayVitalAttributeComponent` 节点**（投射物用这个名字判断，墙/地形直接被跳过）。伤害数值只写在 `skills/data/shared/effects/*.tres` 与 `flat_damage_10.tres` 里。
+- **实体约定**：`facing`（朝向）、`dash(direction, distance, duration)`（可位移，由 `GE_Dash2D` 调用）、group `players`（可被追）/ `enemies`（可被瞄准）、`get_gameplay_ability_component()`（插件查组件的接口，见 player.gd）。血量/属性不写在实体脚本里，挂在插件组件上。
 - **地形**：`maps/arena_01/terrain.gd` 的 `ARENA` 常量（每格一字符：`#` 墙、`.` 地面、`o` 地台）在 `_ready()` 里 `set_cell` 刷出来。只有**墙格**带碰撞多边形（在 `arena_01_tileset.tres` 里）。想改成在 TileMap 面板手工刷 → 删掉该脚本即可无缝替换。
-- **y-sort**：`Main` / `Arena01` / `Terrain` 都开 `y_sort_enabled`，且 `Terrain.y_sort_origin = 0`。这个值决定玩家能否画在地砖之上，**改完必须截图确认**（踩过：设成 32 时地台格把玩家盖住了）。
-  已知遗留：出生点就踩在 `o` 地台上，地台格与玩家 y 相同 → 地台格画在玩家之上，**出生时看不到自己**（改本文件时实测：`HEAD` 版本也有，不是新引入的）。要修就给地台瓦片在 `arena_01_tileset.tres` 里设负的 `y_sort_origin`，或把出生点挪到普通地面。
+- **y-sort**：`Main` / `Arena01` / `Terrain` / 实体都开 `y_sort_enabled`（决定实体之间的前后遮挡）。但**光靠 y-sort 不能保证实体画在地砖之上**：实体与它所在格的地砖排序键相同，会**被地砖盖住**（实测：Terrain `z_index = 0` 时，站在地面的玩家/敌人被脚下的地砖完全遮住，只看得见血条）。所以 `Terrain` 设为 `z_index = -1`（地形永远是背景），靠 y-sort 只负责实体之间的关系。改地形/新增图层时**必须截图确认**。
 
 ## 已知坑（踩过，别重复）
 
@@ -80,7 +87,16 @@ main/main.tscn        Main (Node2D, y_sort_enabled)
 5. **`.gd.uid` 必须跟脚本一起移动**（uid 决定引用解析）；移动脚本后同时更新引用它的 `.tscn` 里的 `path=`。不要手写或手删 uid 文件。
 6. `project.godot` 的 `[editor_plugins] enabled` 里出现过重复的裸名条目（`"godot_agent_loop"`，与规范路径条目并存），会让每次 headless 编辑器启动多打一行 `ERROR: Condition "p_enabled && addon_name_to_plugin.has(addon_path)"`。删掉裸名条目可以消掉这行，但**会复现**（插件/编辑器保存项目设置时又写回来）。
 7. **Godot 4.7 删掉了 `CollisionObject2D.add_collision_exception_with()` / `get_collision_exceptions()`**（旧文档/旧代码里到处都是）。要让投射物不撞发射者，得用碰撞层 + 自己记 `_caster` 引用（见上方“碰撞层约定”）。判据：`--check-only` 会直接报 `Function "add_collision_exception_with()" not found in base self`。
-8. **新增 `class_name` 脚本后，`--check-only` / 无编辑器跑会报 `Could not find type "Xxx"`** —— 因为 `.godot/global_script_class_cache.cfg` 没更新。跑一次 `--import` 就会刷新（同一个 `--import` 还会生成 `.gd.uid`）。注意该进程会覆盖并删除 `.godot/godot_agent_loop/editor-session.json`（见坑 4）：需要保留正在开的编辑器会话就先把该文件备份再拷回去。
+8. **实体被地砖盖住**：只开 `y_sort_enabled` 不够 —— 实体的排序键和它脚下那格地砖相同，地砖后画就把实体盖掉了（表现：人物/敌人消失，只剩血条浮在上面）。修法是让地形当背景（`Terrain.z_index = -1`，已设）。**任何 y-sort / z_index / 图层改动都要用截图或像素取样确认，别只看节点属性。**
+   取样小技巧：headless 下 `root.size` 默认只有 64x64，跑截图断言前先 `root.size = Vector2i(1152, 648)`；读像素用 `root.get_texture().get_image().get_pixelv()`，不要用 `get_screen_transform()` 自己算坐标（相机 `position_smoothing` 时它不可靠）。
+9. **新增 `class_name` 脚本后，`--check-only` / 无编辑器跑会报 `Could not find type "Xxx"`** —— 因为 `.godot/global_script_class_cache.cfg` 没更新。跑一次 `--import` 就会刷新（同一个 `--import` 还会生成 `.gd.uid`）。注意该进程会覆盖并删除 `.godot/godot_agent_loop/editor-session.json`（见坑 4）：需要保留正在开的编辑器会话就先把该文件备份再拷回去。
+
+10. **插件的 `AbilityNodeBase._get_target_list()` 会炸**：它写 `var target_list: Array[Node] = context.get(target_key)`，context 里没有那个 key（返回 null）时直接报 `Trying to assign a value of type "Nil" to a variable of type "Array[Node]"` 并中断这次 tick。→ **任何交给插件的施放 context 都要带 `targets`（空数组也行）**（`IndicatorPreview2D.get_result_context()` 和 `AbilityInputRouter.release()` 都加了）。
+    同一个函数导致的第二个坑：`AbilityNodeApplyEffect.use_instigator_as_fallback` 插件里**没被用上**（`_tick` 写死 `_get_target_list(instance, false)`）→ 自身效果（dash 这种）必须用一个 `AbilityNodeTargetSearch` + `SelfTargetingStrategy` 先把施法者写进 `targets`，再 apply。
+11. **插件是 3D-first 的**：投射物实体、位移效果、指示器预览、命中检测、Cue 全是 `Node3D`/`Vector3`（26 个文件用 3D 类型，1 个用 Vector2）。2D 项目只能白嫖它的**框架层**（技能定义/特性/冷却/行为树/属性/血条/效果/状态/标签/伤害计算），凡是"和世界打交道"的部分都得在 `skills/two_d/` 自己实现（已写好：指示器预览、2D 投射物节点、2D 位移效果、固定伤害策略）。它的 `ui/*.tscn` 也别用：内部路径写死成 `res://addons/gameplay_abiltiy_system/...`（少了 `godot_`、`ability` 还拼错）+ `res://assets/theme/theme_main.tres`，全是坏引用。
+12. **插件脚本把 autoload 单例当全局标识符用**（`GameplayAbilitySystem` / `AbilityEventBus` / `TagManager` / `DamageCalculator` / `GameplayCueManager`）。这些名字只在**正常 project 运行**（场景启动、autoload 已注册）时能编译。用 `--check-only --script xx.gd` 或 `--script`（自定义 SceneTree）会报 `Identifier not found: GameplayAbilitySystem` —— **这是假错误**。校验插件相关脚本要跑场景（见"常用命令"），别用 `--check-only`。
+13. **导出预设的 `exclude_filter` 曾经是 `addons/*`**，会把运行期要用的技能插件一起排除出 APK（技能全部失效）。现在只排除 `addons/godot_agent_loop/*`、`addons/godot_ability_system/docs/*`、`examples/*`。动这个字段前先想清楚哪些 addon 是运行期依赖。
+14. **子模块不要手改**：`addons/godot_ability_system` 是 git 子模块（pin 在某个 commit）。要升级用 `git submodule update --remote addons/godot_ability_system`（然后提交新的 pin）；要改行为就在 `skills/two_d/` 里继承/包装它的类。直接改子模块里的文件会让下次升级冲突。
 
 ## 常用命令
 
@@ -97,6 +113,16 @@ PROJ=/Users/zhaojie/godot_project/ahh
 # 跑主场景 120 帧并看日志（不弹窗，适合 CI/快速自检）
 "$GODOT" --headless --path "$PROJ" --quit-after 120
 
+# 生成 / 重新生成技能数据（改动技能结构后跑一次；必须当场景跑，见坑 12）
+"$GODOT" --headless --path "$PROJ" res://skills/data/build/generate_ability_data.tscn
+
+# 技能系统断言套件（32 条；同样必须当场景跑）
+"$GODOT" --headless --path "$PROJ" --fixed-fps 60 res://.godot/verify_abilities.tscn
+
+# 子模块
+git submodule update --init --recursive
+git submodule update --remote addons/godot_ability_system   # 升级插件并提交新 pin
+
 # Android 导出（debug 签名；JAVA_HOME 必需，见坑 4）
 export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
 "$GODOT" --headless --path "$PROJ" --export-debug "Android" build/ahh.apk
@@ -108,12 +134,10 @@ export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
 
 ## 验证状态（截至本文件编写时）
 
-- 已验证：场景/资源引用完整性；四方向移动、撞墙阻挡、摇杆拖动；Android 可导出并签名
-- 已验证（技能系统，一次 headless 跑通 50 条断言 + 截图）：`bullet_shot.tres` / `dash.tres` 能加载且动作类型正确；短按朝面向发射、发射后进 1s 冷却、冷却中按键无效；子弹 520px/s 飞 480px 后自毁；长按出指示器（箭头方向随拖动、位置跟随施法者）、松手隐藏并按指示方向施放；dash 短按位移正好 168px、2s 冷却、长按同样有指示器
-- 已验证（视觉）：指示器箭头/颜色/长度、HUD 按钮与冷却扇形遮罩、飞行中的子弹 —— 截图脚本 `.godot/shots.gd`（往 `/tmp/shot_*.png` 写图）
-- 可重跑：`"$GODOT" --headless --path . --fixed-fps 60 --script res://.godot/verify_skills.gd`（58 条断言；`--fixed-fps` 让帧时间固定，否则冷却/位移无法断言）。两个 harness 都在 `.godot/` 里（gitignored，不会被提交）
-- 踩过：headless 的根 viewport 默认只有 64x64，测 HUD 前必须 `root.size = Vector2i(1152, 648)`；注入鼠标事件用 `root.push_input(event, true)`（`in_local_coords`，否则窗口偏移会被算两次）
-- 未验证：真机/模拟器安装与运行、真实触摸（手指）路径、多人同步
+- 已验证（插件链路，场景断言套件 `.godot/verify_abilities.tscn` **32 条全过**）：加载后玩家学到 `shot`/`dash` 两个技能；敌人经插件 vital 初始化到 100/100；点击 shot → 出 2D 指示器且**默认指向最近敌人** → 松手发射 → 子弹带插件伤害效果 → 命中敌人**准确扣 10 血** → 冷却经 `CooldownFeature` 拦住第二次施放 → 冷却结束恢复；dash → 指示器指向敌人**反方向** → 位移正好 168px 且远离敌人；触摸取消不留指示器也不施放；十发把敌人打死并自毁
+- 已验证（视觉）：自动瞄准的箭头指示器、飞行中的子弹、敌人血条随插件伤害变短、按钮冷却扇形 —— 截图脚本 `.godot/shots_abilities.gd`（往 `/tmp/ab_*.png` 写图）
+- 已验证（静态/运行）：`git submodule` 就位（pin `a360f40`）；主场景 headless 跑 400 帧 0 error（只有退出时的资源残留警告，插件 teardown 自带的）；插件的 5 个 autoload 在 `project.godot` 里注册
+- 未验证：真机/模拟器安装与运行、真实触摸（手指）路径、多人同步、玩家自身的血量/受击（目前只有敌人在插件 vital 里）
 
 > 本文件的技能章节（下方）是硬约束：**新技能 = 组合现有 Action/Effect + 参数 + 条件**，不要为每个技能写专门的脚本。
 
@@ -121,6 +145,15 @@ export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
 
 
 ## 技能系统
+
+> **实现位置（2026-09 起）**：本节的设计原则（数据驱动 / 组合优于继承 / 表现反应于玩法 / 不写技能专用脚本）**保持不变**，但落地载体已经从自研的 `SkillData + SkillAction` 换成了 **`addons/godot_ability_system` 插件（git 子模块）**：
+> - 技能**定义** = 插件的 `GameplayAbilityDefinition`（`.tres`，在 `skills/data/`）：`features`（冷却/消耗/输入…）+ `execution_tree`（行为树）+ `preview_strategy`（瞄准指示器）
+> - 技能**行为** = 行为树节点（插件的 `AbilityNode*` + 本项目的 2D 节点）+ `GameplayEffect`（伤害/位移/状态…）
+> - 技能**实体** = 还是本项目的 Godot 场景（`entities/*`）
+> - 插件缺的 2D 部分（指示器/投射物/位移/命中）= `skills/two_d/` 里的继承扩展
+>
+> 下文中"`SkillData` / `SkillAction` / `SkillExecutor` / `SkillIndicator`"这些自研类**已经删除**，只作为设计原则参考（对应实现见上面三条）。不要在它们的基础上继续加东西。
+
 1. Project Goal
 
 This project is a 2D real-time multiplayer action game inspired by games such as Brawl Stars.

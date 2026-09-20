@@ -7,6 +7,7 @@
 y_sort_enabled = true
 
 [node name="Terrain" type="TileMapLayer" parent="." unique_id=192926136]
+z_index = -1
 y_sort_enabled = true
 tile_set = ExtResource("1_umbjh")
 script = ExtResource("2_rj6x7")

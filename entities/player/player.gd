@@ -35,6 +35,11 @@ func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 	_fit_body_to_collision_shape()
 
+## Plugin interface hook: lets the ability system (and effects) find this
+## entity's ability component without knowing the node name.
+func get_gameplay_ability_component() -> GameplayAbilityComponent:
+	return $Abilities
+
 ## The agent bridge cannot express a PackedVector2Array, so the placeholder
 ## square is derived from the collision shape instead of stored in the scene.
 func _fit_body_to_collision_shape() -> void:

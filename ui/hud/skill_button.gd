@@ -25,12 +25,9 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	resized.connect(queue_redraw)
 
-## Called when wiring the HUD: takes the look from the skill itself.
-func setup(skill: SkillData) -> void:
-	if skill == null:
-		return
-	button_color = skill.icon_color
-	label = skill.display_name
+## Called when wiring the HUD; the label is the ability's display name.
+func setup(display_name: String) -> void:
+	label = display_name
 	queue_redraw()
 
 ## 0.0 = ready, 1.0 = just went on cooldown.

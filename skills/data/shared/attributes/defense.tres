@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="GameplayAttribute" format=3]
+
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/attributes/gameplay_attribute.gd" id="1_p11mm"]
+
+[resource]
+script = ExtResource("1_p11mm")
+attribute_id = &"defense"
+attribute_display_name = "Defense"
+min_value = 0.0
