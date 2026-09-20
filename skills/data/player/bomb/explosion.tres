@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="MagicFieldData2D" format=3]
+
+[ext_resource type="PackedScene" path="res://entities/magic_field/magic_field.tscn" id="1_vnd8e"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/effects/gameplay_effect.gd" id="2_uhjo4"]
+[ext_resource type="Resource" path="res://skills/data/shared/effects/explosion_damage.tres" id="3_2e87h"]
+[ext_resource type="Script" path="res://skills/two_d/magic_field_data_2d.gd" id="4_dgowd"]
+
+[resource]
+script = ExtResource("4_dgowd")
+duration = 0.3
+tick_interval = 0.0
+radius = 90.0
+color = Color(1, 0.55, 0.2, 0.3)
+field_scene = ExtResource("1_vnd8e")
+payload_effects = Array[ExtResource("2_uhjo4")]([ExtResource("3_2e87h")])

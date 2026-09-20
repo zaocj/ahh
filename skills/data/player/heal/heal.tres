@@ -1,0 +1,49 @@
+[gd_resource type="Resource" script_class="GameplayAbilityDefinition" format=3]
+
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/behavior_tree/bt_node.gd" id="1_lxf4f"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/ability_nodes/ability_node_commit_cooldown.gd" id="2_elew5"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/ability_nodes/ability_node_target_search.gd" id="3_cnudn"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/filters/gameplay_filter.gd" id="4_x18f7"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/targeting/strategies/self_targeting_strategy.gd" id="5_yxhjl"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/effects/gameplay_effect.gd" id="6_hhfou"]
+[ext_resource type="Resource" path="res://skills/data/shared/effects/heal_30.tres" id="7_b8bes"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/ability_nodes/ability_node_apply_effect.gd" id="8_1nymq"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/behavior_tree/composites/bt_sequence.gd" id="9_guddy"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/features/gameplay_ability_feature.gd" id="10_qkxdr"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/features/cooldown_feature.gd" id="11_57i0m"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/gameplay_ability_definition.gd" id="12_p5ycr"]
+
+[sub_resource type="Resource" id="Resource_8xs3x"]
+script = ExtResource("2_elew5")
+node_id = &"commit_cooldown"
+
+[sub_resource type="Resource" id="Resource_24lwy"]
+script = ExtResource("5_yxhjl")
+
+[sub_resource type="Resource" id="Resource_uxl8x"]
+script = ExtResource("3_cnudn")
+strategy = SubResource("Resource_24lwy")
+fail_if_empty = true
+node_id = &"self_target"
+
+[sub_resource type="Resource" id="Resource_r2irn"]
+script = ExtResource("8_1nymq")
+effects = Array[ExtResource("6_hhfou")]([ExtResource("7_b8bes")])
+node_id = &"apply_effect"
+
+[sub_resource type="Resource" id="Resource_0jkxr"]
+script = ExtResource("9_guddy")
+children = Array[ExtResource("1_lxf4f")]([SubResource("Resource_8xs3x"), SubResource("Resource_uxl8x"), SubResource("Resource_r2irn")])
+node_id = &"ability_sequence"
+
+[sub_resource type="Resource" id="Resource_g5raa"]
+script = ExtResource("11_57i0m")
+cooldown_duration = 4.0
+
+[resource]
+script = ExtResource("12_p5ycr")
+ability_id = &"heal"
+ability_name = "Heal"
+description = "Restore 30 health to yourself."
+features = Array[ExtResource("10_qkxdr")]([SubResource("Resource_g5raa")])
+execution_tree = SubResource("Resource_0jkxr")

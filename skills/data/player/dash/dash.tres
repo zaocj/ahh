@@ -1,69 +1,54 @@
 [gd_resource type="Resource" script_class="GameplayAbilityDefinition" format=3]
 
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/behavior_tree/bt_node.gd" id="1_5s8kt"]
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/ability_nodes/ability_node_commit_cooldown.gd" id="2_87wa4"]
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/ability_nodes/ability_node_target_search.gd" id="3_tirme"]
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/filters/gameplay_filter.gd" id="4_aslep"]
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/targeting/strategies/self_targeting_strategy.gd" id="5_ghgl8"]
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/effects/gameplay_effect.gd" id="6_ee3g6"]
-[ext_resource type="Script" path="res://skills/two_d/ge_dash_2d.gd" id="7_dmink"]
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/ability_nodes/ability_node_apply_effect.gd" id="8_2jgf5"]
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/behavior_tree/composites/bt_sequence.gd" id="9_0rcnd"]
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/features/gameplay_ability_feature.gd" id="10_euett"]
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/features/cooldown_feature.gd" id="11_blyw1"]
-[ext_resource type="Script" path="res://skills/two_d/skill_indicator_data.gd" id="12_d1bkx"]
-[ext_resource type="Script" path="res://skills/two_d/indicator_preview_2d.gd" id="13_eticv"]
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/gameplay_ability_definition.gd" id="14_cftrn"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/behavior_tree/bt_node.gd" id="1_anmld"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/ability_nodes/ability_node_commit_cooldown.gd" id="2_5s8kt"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/ability_nodes/ability_node_target_search.gd" id="3_87wa4"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/filters/gameplay_filter.gd" id="4_tirme"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/targeting/strategies/self_targeting_strategy.gd" id="5_aslep"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/effects/gameplay_effect.gd" id="6_ghgl8"]
+[ext_resource type="Script" path="res://skills/two_d/ge_dash_2d.gd" id="7_ee3g6"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/ability_nodes/ability_node_apply_effect.gd" id="8_dmink"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/behavior_tree/composites/bt_sequence.gd" id="9_2jgf5"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/features/gameplay_ability_feature.gd" id="10_0rcnd"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/features/cooldown_feature.gd" id="11_euett"]
+[ext_resource type="Resource" path="res://skills/data/player/dash/preview.tres" id="12_blyw1"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/gameplay_ability_definition.gd" id="13_d1bkx"]
 
-[sub_resource type="Resource" id="Resource_1melf"]
-script = ExtResource("2_87wa4")
+[sub_resource type="Resource" id="Resource_eticv"]
+script = ExtResource("2_5s8kt")
 node_id = &"commit_cooldown"
 
-[sub_resource type="Resource" id="Resource_8blv4"]
-script = ExtResource("5_ghgl8")
+[sub_resource type="Resource" id="Resource_cftrn"]
+script = ExtResource("5_aslep")
 
-[sub_resource type="Resource" id="Resource_ecs5q"]
-script = ExtResource("3_tirme")
-strategy = SubResource("Resource_8blv4")
+[sub_resource type="Resource" id="Resource_1melf"]
+script = ExtResource("3_87wa4")
+strategy = SubResource("Resource_cftrn")
 fail_if_empty = true
 node_id = &"self_target"
 
+[sub_resource type="Resource" id="Resource_8blv4"]
+script = ExtResource("7_ee3g6")
+
+[sub_resource type="Resource" id="Resource_ecs5q"]
+script = ExtResource("8_dmink")
+effects = Array[ExtResource("6_ghgl8")]([SubResource("Resource_8blv4")])
+node_id = &"apply_effect"
+
 [sub_resource type="Resource" id="Resource_xepos"]
-script = ExtResource("7_dmink")
+script = ExtResource("9_2jgf5")
+children = Array[ExtResource("1_anmld")]([SubResource("Resource_eticv"), SubResource("Resource_1melf"), SubResource("Resource_ecs5q")])
+node_id = &"ability_sequence"
 
 [sub_resource type="Resource" id="Resource_5vymm"]
-script = ExtResource("8_2jgf5")
-effects = Array[ExtResource("6_ee3g6")]([SubResource("Resource_xepos")])
-node_id = &"apply_dash"
-
-[sub_resource type="Resource" id="Resource_kn6no"]
-script = ExtResource("9_0rcnd")
-children = Array[ExtResource("1_5s8kt")]([SubResource("Resource_1melf"), SubResource("Resource_ecs5q"), SubResource("Resource_5vymm")])
-node_id = &"dash_sequence"
-
-[sub_resource type="Resource" id="Resource_fb8hr"]
-script = ExtResource("11_blyw1")
+script = ExtResource("11_euett")
 cooldown_duration = 2.0
 
-[sub_resource type="Resource" id="Resource_mmhlt"]
-script = ExtResource("12_d1bkx")
-length = 168.0
-width = 8.0
-head_length = 34.0
-fill_color = Color(0.42, 0.86, 0.55, 0.2)
-outline_color = Color(0.55, 0.95, 0.68, 0.9)
-
-[sub_resource type="Resource" id="Resource_x6qii"]
-script = ExtResource("13_eticv")
-indicator_data = SubResource("Resource_mmhlt")
-default_aim = 2
-max_range = 168.0
-
 [resource]
-script = ExtResource("14_cftrn")
+script = ExtResource("13_d1bkx")
 ability_id = &"dash"
 ability_name = "Dash"
-description = "Short dash towards the aim; tap dashes away from the nearest enemy."
-preview_strategy = SubResource("Resource_x6qii")
-features = Array[ExtResource("10_euett")]([SubResource("Resource_fb8hr")])
-execution_tree = SubResource("Resource_kn6no")
+description = "Short dash along the aim; tap dashes away from the nearest enemy."
+preview_strategy = ExtResource("12_blyw1")
+features = Array[ExtResource("10_0rcnd")]([SubResource("Resource_5vymm")])
+execution_tree = SubResource("Resource_xepos")

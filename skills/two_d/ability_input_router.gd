@@ -19,6 +19,9 @@ var _previewing_slot: int = -1
 var _press_position: Vector2 = Vector2.ZERO
 var _aim_direction: Vector2 = Vector2.ZERO
 var _component: GameplayAbilityComponent = null
+## Live copy of the loadout: the .tres is the starting point, swapping skills at
+## runtime must not rewrite the project resource.
+var _equipped: Array[GameplayAbilityDefinition] = []
 
 func _ready() -> void:
 	# The component sits next to us on the caster; the plugin's own lookup helper
@@ -26,8 +29,10 @@ func _ready() -> void:
 	var caster := get_parent()
 	if caster != null:
 		_component = GameplayAbilitySystem.get_component_by_interface(caster, "GameplayAbilityComponent") as GameplayAbilityComponent
-	if _component != null and loadout != null:
-		for ability in loadout.abilities:
+	if loadout != null:
+		_equipped = loadout.abilities.duplicate()
+	if _component != null:
+		for ability in _equipped:
 			if is_instance_valid(ability):
 				_component.learn_ability(ability)
 
@@ -38,16 +43,36 @@ func _process(delta: float) -> void:
 
 ## Slot helpers, used by the HUD.
 func ability_definition(slot: int) -> GameplayAbilityDefinition:
-	if loadout == null or slot < 0 or slot >= loadout.abilities.size():
+	if slot < 0 or slot >= _equipped.size():
 		return null
-	return loadout.abilities[slot]
+	return _equipped[slot]
 
 func ability_id(slot: int) -> StringName:
 	var ability := ability_definition(slot)
 	return &"" if ability == null else ability.ability_id
 
 func slot_count() -> int:
-	return 0 if loadout == null else loadout.abilities.size()
+	return _equipped.size()
+
+## Everything that may be equipped (drawer contents).
+func inventory() -> Array[GameplayAbilityDefinition]:
+	return [] if loadout == null else loadout.inventory
+
+## Swaps the ability in `slot` for the inventory ability `ability_id`.
+## Returns false when it is unknown or already equipped there.
+func equip(slot: int, ability_id: StringName) -> bool:
+	if _component == null or loadout == null or slot < 0 or slot >= _equipped.size():
+		return false
+	var ability := loadout.find_in_inventory(ability_id)
+	if ability == null or ability == ability_definition(slot):
+		return false
+
+	var previous := ability_definition(slot)
+	if previous != null and _component.has_ability(previous.ability_id):
+		_component.forget_ability(previous.ability_id)
+	_equipped[slot] = ability
+	_component.learn_ability(ability)
+	return true
 
 func ability_instance(slot: int) -> GameplayAbilityInstance:
 	if _component == null:

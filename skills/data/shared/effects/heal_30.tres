@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="GE_ModifyVital" format=3]
+
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/filters/gameplay_filter.gd" id="1_uc0o5"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/effects/ge_modify_vital.gd" id="2_c7px5"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/effects/gameplay_effect.gd" id="3_qedt6"]
+
+[resource]
+script = ExtResource("2_c7px5")
+vital_id = &"health"
+amount = 30.0

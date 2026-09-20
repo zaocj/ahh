@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="ProjectileData2D" format=3]
+
+[ext_resource type="PackedScene" path="res://entities/magic_field/magic_field.tscn" id="1_31o3w"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/effects/gameplay_effect.gd" id="2_4ojh8"]
+[ext_resource type="Resource" path="res://skills/data/shared/effects/explosion_damage.tres" id="3_5vykl"]
+[ext_resource type="Script" path="res://skills/two_d/magic_field_data_2d.gd" id="4_h624r"]
+[ext_resource type="PackedScene" path="res://entities/projectile/projectile.tscn" id="5_mo1au"]
+[ext_resource type="Script" path="res://skills/two_d/projectile_data_2d.gd" id="6_o6plq"]
+
+[sub_resource type="Resource" id="Resource_1u6c0"]
+script = ExtResource("4_h624r")
+duration = 0.3
+tick_interval = 0.0
+radius = 90.0
+color = Color(1, 0.55, 0.2, 0.3)
+field_scene = ExtResource("1_31o3w")
+payload_effects = Array[ExtResource("2_4ojh8")]([ExtResource("3_5vykl")])
+
+[resource]
+script = ExtResource("6_o6plq")
+speed = 380.0
+max_distance = 420.0
+projectile_scene = ExtResource("5_mo1au")
+impact_field = SubResource("Resource_1u6c0")

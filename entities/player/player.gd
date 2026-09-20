@@ -9,9 +9,21 @@ extends CharacterBody2D
 signal moved(direction: Vector2)
 signal blocked(direction: Vector2)
 
+const HEALTH_VITAL: StringName = &"health"
+const BAR_SIZE: Vector2 = Vector2(34.0, 5.0)
+const BAR_OFFSET: Vector2 = Vector2(0.0, -30.0)
+const BAR_BACK: Color = Color(0.05, 0.06, 0.10, 0.85)
+const BAR_FILL: Color = Color(0.35, 0.9, 0.6)
+const FLASH_COLOR: Color = Color(1.0, 1.0, 1.0)
+
 @export var speed: float = 220.0
 @export var acceleration: float = 2600.0
 @export var friction: float = 3200.0
+@export var hit_flash_time: float = 0.1
+
+@export_group("Ability System")
+## Attributes and vitals for the plugin component (health, so healing works).
+@export var stats: StatBlock2D
 
 ## Direction pushed by the on-screen joystick; combined with the key actions.
 var joystick_input: Vector2 = Vector2.ZERO
@@ -30,15 +42,51 @@ var is_blocked: bool = false
 
 @onready var _body: Polygon2D = $Body
 @onready var _collision: CollisionShape2D = $CollisionShape2D
+@onready var _vitals: GameplayVitalAttributeComponent = $GameplayVitalAttributeComponent
+
+var _base_color: Color = Color.WHITE
+var _flash_tween: Tween = null
 
 func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 	_fit_body_to_collision_shape()
+	_base_color = _body.color
+	if stats != null:
+		_vitals.initialize(stats.attribute_sets, stats.vitals)
+	_vitals.vital_value_changed.connect(_on_vital_changed)
 
 ## Plugin interface hook: lets the ability system (and effects) find this
 ## entity's ability component without knowing the node name.
 func get_gameplay_ability_component() -> GameplayAbilityComponent:
 	return $Abilities
+
+## The plugin vital holding this player's hit points.
+func health() -> GameplayVital:
+	return _vitals.get_vital(HEALTH_VITAL)
+
+func health_ratio() -> float:
+	var vital := health()
+	return 0.0 if vital == null else vital.get_percent()
+
+func _on_vital_changed(vital_id: StringName, _current: float, _max: float, _percent: float, is_regen: bool) -> void:
+	if vital_id != HEALTH_VITAL or is_regen:
+		return
+	queue_redraw()
+	_flash()
+
+func _flash() -> void:
+	if _flash_tween != null and _flash_tween.is_valid():
+		_flash_tween.kill()
+	_body.color = FLASH_COLOR
+	_flash_tween = create_tween()
+	_flash_tween.tween_property(_body, "color", _base_color, hit_flash_time)
+
+func _draw() -> void:
+	var origin := BAR_OFFSET - Vector2(BAR_SIZE.x * 0.5, 0.0)
+	draw_rect(Rect2(origin - Vector2(1.0, 1.0), BAR_SIZE + Vector2(2.0, 2.0)), BAR_BACK)
+	var ratio := health_ratio()
+	if ratio > 0.0:
+		draw_rect(Rect2(origin, Vector2(BAR_SIZE.x * ratio, BAR_SIZE.y)), BAR_FILL)
 
 ## The agent bridge cannot express a PackedVector2Array, so the placeholder
 ## square is derived from the collision shape instead of stored in the scene.

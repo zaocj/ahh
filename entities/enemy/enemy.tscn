@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://entities/enemy/enemy.gd" id="1_enemy"]
 [ext_resource type="Shape2D" path="res://entities/enemy/enemy_shape.tres" id="2_shape"]
 [ext_resource type="Script" path="res://addons/godot_ability_system/scripts/components/gameplay_vital_attribute_component.gd" id="3_vitals"]
 [ext_resource type="Resource" path="res://skills/data/shared/vitals/enemy_stats.tres" id="4_stats"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/components/gameplay_status_component.gd" id="5_status"]
 
 [node name="Enemy" type="CharacterBody2D" groups=["enemies"]]
 y_sort_enabled = true
@@ -22,3 +23,6 @@ color = Color(0.92, 0.32, 0.32, 1)
 
 [node name="GameplayVitalAttributeComponent" type="Node" parent="."]
 script = ExtResource("3_vitals")
+
+[node name="GameplayStatusComponent" type="Node" parent="."]
+script = ExtResource("5_status")

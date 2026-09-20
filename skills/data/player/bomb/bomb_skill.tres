@@ -1,0 +1,59 @@
+[gd_resource type="Resource" script_class="GameplayAbilityDefinition" format=3]
+
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/behavior_tree/bt_node.gd" id="1_j1cox"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/ability_nodes/ability_node_commit_cooldown.gd" id="2_vcpir"]
+[ext_resource type="PackedScene" path="res://entities/magic_field/magic_field.tscn" id="3_3nj5p"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/effects/gameplay_effect.gd" id="4_kmh8y"]
+[ext_resource type="Resource" path="res://skills/data/shared/effects/explosion_damage.tres" id="5_0tlnt"]
+[ext_resource type="Script" path="res://skills/two_d/magic_field_data_2d.gd" id="6_sykf5"]
+[ext_resource type="PackedScene" path="res://entities/projectile/projectile.tscn" id="7_vaw17"]
+[ext_resource type="Script" path="res://skills/two_d/projectile_data_2d.gd" id="8_1tli8"]
+[ext_resource type="Script" path="res://skills/two_d/ability_node_spawn_projectile_2d.gd" id="9_y7vhu"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/behavior_tree/composites/bt_sequence.gd" id="10_whr0k"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/features/gameplay_ability_feature.gd" id="11_6lnlj"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/features/cooldown_feature.gd" id="12_mrssw"]
+[ext_resource type="Resource" path="res://skills/data/player/bomb/preview.tres" id="13_7l7ii"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/gameplay_ability_definition.gd" id="14_12or6"]
+
+[sub_resource type="Resource" id="Resource_u0yx0"]
+script = ExtResource("2_vcpir")
+node_id = &"commit_cooldown"
+
+[sub_resource type="Resource" id="Resource_1u6c0"]
+script = ExtResource("6_sykf5")
+duration = 0.3
+tick_interval = 0.0
+radius = 90.0
+color = Color(1, 0.55, 0.2, 0.3)
+field_scene = ExtResource("3_3nj5p")
+payload_effects = Array[ExtResource("4_kmh8y")]([ExtResource("5_0tlnt")])
+
+[sub_resource type="Resource" id="Resource_s4ppr"]
+script = ExtResource("8_1tli8")
+speed = 380.0
+max_distance = 420.0
+projectile_scene = ExtResource("7_vaw17")
+impact_field = SubResource("Resource_1u6c0")
+
+[sub_resource type="Resource" id="Resource_xjex1"]
+script = ExtResource("9_y7vhu")
+projectile_data = SubResource("Resource_s4ppr")
+node_id = &"spawn_projectile"
+
+[sub_resource type="Resource" id="Resource_uyja6"]
+script = ExtResource("10_whr0k")
+children = Array[ExtResource("1_j1cox")]([SubResource("Resource_u0yx0"), SubResource("Resource_xjex1")])
+node_id = &"ability_sequence"
+
+[sub_resource type="Resource" id="Resource_xkf3s"]
+script = ExtResource("12_mrssw")
+cooldown_duration = 2.0
+
+[resource]
+script = ExtResource("14_12or6")
+ability_id = &"bomb"
+ability_name = "Bomb"
+description = "Throw a bomb: it explodes on impact for 25 damage in a 90px blast."
+preview_strategy = ExtResource("13_7l7ii")
+features = Array[ExtResource("11_6lnlj")]([SubResource("Resource_xkf3s")])
+execution_tree = SubResource("Resource_uyja6")

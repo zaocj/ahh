@@ -1,10 +1,15 @@
 [gd_resource type="Resource" script_class="AbilityLoadout2D" format=3]
 
-[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/gameplay_ability_definition.gd" id="1_a6sm1"]
-[ext_resource type="Resource" path="res://skills/data/player/shot/shot.tres" id="2_r357u"]
-[ext_resource type="Resource" path="res://skills/data/player/dash/dash.tres" id="3_1lpv0"]
-[ext_resource type="Script" path="res://skills/two_d/ability_loadout_2d.gd" id="4_846p4"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/gameplay_ability_definition.gd" id="1_50ua5"]
+[ext_resource type="Resource" path="res://skills/data/player/shot/shot.tres" id="2_i328e"]
+[ext_resource type="Resource" path="res://skills/data/player/dash/dash.tres" id="3_4vkn7"]
+[ext_resource type="Resource" path="res://skills/data/player/frost/frost.tres" id="4_ea1dw"]
+[ext_resource type="Resource" path="res://skills/data/player/bomb/bomb_skill.tres" id="5_fvewn"]
+[ext_resource type="Resource" path="res://skills/data/player/field/field.tres" id="6_hr5n1"]
+[ext_resource type="Resource" path="res://skills/data/player/heal/heal.tres" id="7_tx3cm"]
+[ext_resource type="Script" path="res://skills/two_d/ability_loadout_2d.gd" id="8_msgq6"]
 
 [resource]
-script = ExtResource("4_846p4")
-abilities = Array[ExtResource("1_a6sm1")]([ExtResource("2_r357u"), ExtResource("3_1lpv0")])
+script = ExtResource("8_msgq6")
+abilities = Array[ExtResource("1_50ua5")]([ExtResource("2_i328e"), ExtResource("3_4vkn7")])
+inventory = Array[ExtResource("1_50ua5")]([ExtResource("2_i328e"), ExtResource("4_ea1dw"), ExtResource("5_fvewn"), ExtResource("6_hr5n1"), ExtResource("7_tx3cm")])

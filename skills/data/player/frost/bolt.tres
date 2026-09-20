@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ProjectileData2D" format=3]
+
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/effects/gameplay_effect.gd" id="1_uw08i"]
+[ext_resource type="Resource" path="res://skills/data/shared/effects/frost_damage.tres" id="2_adk2w"]
+[ext_resource type="Resource" path="res://skills/data/shared/effects/apply_frozen.tres" id="3_wcmkn"]
+[ext_resource type="PackedScene" path="res://entities/projectile/projectile.tscn" id="4_so340"]
+[ext_resource type="Script" path="res://skills/two_d/projectile_data_2d.gd" id="5_nb6ux"]
+
+[resource]
+script = ExtResource("5_nb6ux")
+speed = 560.0
+projectile_scene = ExtResource("4_so340")
+payload_effects = Array[ExtResource("1_uw08i")]([ExtResource("2_adk2w"), ExtResource("3_wcmkn")])

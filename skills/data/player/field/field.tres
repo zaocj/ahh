@@ -1,0 +1,47 @@
+[gd_resource type="Resource" script_class="GameplayAbilityDefinition" format=3]
+
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/behavior_tree/bt_node.gd" id="1_nyvmw"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/ability_nodes/ability_node_commit_cooldown.gd" id="2_cgdm5"]
+[ext_resource type="PackedScene" path="res://entities/magic_field/magic_field.tscn" id="3_k3apa"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/effects/gameplay_effect.gd" id="4_luixw"]
+[ext_resource type="Resource" path="res://skills/data/shared/effects/field_damage.tres" id="5_uquvh"]
+[ext_resource type="Script" path="res://skills/two_d/magic_field_data_2d.gd" id="6_k4jly"]
+[ext_resource type="Script" path="res://skills/two_d/ability_node_spawn_magic_field_2d.gd" id="7_mb4bu"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/behavior_tree/composites/bt_sequence.gd" id="8_yexg4"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/features/gameplay_ability_feature.gd" id="9_gaxmk"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/features/cooldown_feature.gd" id="10_rrrdg"]
+[ext_resource type="Resource" path="res://skills/data/player/field/preview.tres" id="11_v8oo2"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/gameplay_ability_definition.gd" id="12_rklfh"]
+
+[sub_resource type="Resource" id="Resource_eg4x7"]
+script = ExtResource("2_cgdm5")
+node_id = &"commit_cooldown"
+
+[sub_resource type="Resource" id="Resource_b2xyg"]
+script = ExtResource("6_k4jly")
+color = Color(0.55, 0.35, 0.95, 0.25)
+field_scene = ExtResource("3_k3apa")
+payload_effects = Array[ExtResource("4_luixw")]([ExtResource("5_uquvh")])
+
+[sub_resource type="Resource" id="Resource_7rhjg"]
+script = ExtResource("7_mb4bu")
+field_data = SubResource("Resource_b2xyg")
+node_id = &"spawn_field"
+
+[sub_resource type="Resource" id="Resource_kerih"]
+script = ExtResource("8_yexg4")
+children = Array[ExtResource("1_nyvmw")]([SubResource("Resource_eg4x7"), SubResource("Resource_7rhjg")])
+node_id = &"ability_sequence"
+
+[sub_resource type="Resource" id="Resource_ljty2"]
+script = ExtResource("10_rrrdg")
+cooldown_duration = 6.0
+
+[resource]
+script = ExtResource("12_rklfh")
+ability_id = &"field"
+ability_name = "Sigil"
+description = "Place a magic sigil: 8 damage every 0.8s for 5s inside 110px."
+preview_strategy = ExtResource("11_v8oo2")
+features = Array[ExtResource("9_gaxmk")]([SubResource("Resource_ljty2")])
+execution_tree = SubResource("Resource_kerih")

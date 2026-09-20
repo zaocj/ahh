@@ -1,0 +1,48 @@
+[gd_resource type="Resource" script_class="GameplayAbilityDefinition" format=3]
+
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/behavior_tree/bt_node.gd" id="1_mpidx"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/ability_nodes/ability_node_commit_cooldown.gd" id="2_2ibsu"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/effects/gameplay_effect.gd" id="3_pckqa"]
+[ext_resource type="Resource" path="res://skills/data/shared/effects/frost_damage.tres" id="4_obfqm"]
+[ext_resource type="Resource" path="res://skills/data/shared/effects/apply_frozen.tres" id="5_dceph"]
+[ext_resource type="PackedScene" path="res://entities/projectile/projectile.tscn" id="6_ybhv3"]
+[ext_resource type="Script" path="res://skills/two_d/projectile_data_2d.gd" id="7_tigdv"]
+[ext_resource type="Script" path="res://skills/two_d/ability_node_spawn_projectile_2d.gd" id="8_odttn"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/behavior_tree/composites/bt_sequence.gd" id="9_ahvle"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/features/gameplay_ability_feature.gd" id="10_mr8cb"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/features/cooldown_feature.gd" id="11_jng3x"]
+[ext_resource type="Resource" path="res://skills/data/player/frost/preview.tres" id="12_cbijv"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/gameplay_ability_definition.gd" id="13_ehpsn"]
+
+[sub_resource type="Resource" id="Resource_him6b"]
+script = ExtResource("2_2ibsu")
+node_id = &"commit_cooldown"
+
+[sub_resource type="Resource" id="Resource_t7na6"]
+script = ExtResource("7_tigdv")
+speed = 560.0
+projectile_scene = ExtResource("6_ybhv3")
+payload_effects = Array[ExtResource("3_pckqa")]([ExtResource("4_obfqm"), ExtResource("5_dceph")])
+
+[sub_resource type="Resource" id="Resource_v4my8"]
+script = ExtResource("8_odttn")
+projectile_data = SubResource("Resource_t7na6")
+node_id = &"spawn_projectile"
+
+[sub_resource type="Resource" id="Resource_vkmcf"]
+script = ExtResource("9_ahvle")
+children = Array[ExtResource("1_mpidx")]([SubResource("Resource_him6b"), SubResource("Resource_v4my8")])
+node_id = &"ability_sequence"
+
+[sub_resource type="Resource" id="Resource_aexmf"]
+script = ExtResource("11_jng3x")
+cooldown_duration = 1.5
+
+[resource]
+script = ExtResource("13_ehpsn")
+ability_id = &"frost"
+ability_name = "Frost"
+description = "Icy bolt: 5 damage and freezes the target for 1.5s."
+preview_strategy = ExtResource("12_cbijv")
+features = Array[ExtResource("10_mr8cb")]([SubResource("Resource_aexmf")])
+execution_tree = SubResource("Resource_vkmcf")

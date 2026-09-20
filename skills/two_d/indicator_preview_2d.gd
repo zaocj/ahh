@@ -94,8 +94,15 @@ func _create_indicator(caster: Node2D) -> SkillIndicator:
 func _refresh_indicator() -> void:
 	if _indicator == null or not is_instance_valid(_indicator) or _caster == null:
 		return
-	_indicator.global_position = _caster.global_position
-	_indicator.set_direction(_direction)
+	# Circles are area previews: they sit where the effect will land (clamped to
+	# max_range) and their radius is the area. Arrows/targets are directional:
+	# they grow out of the caster.
+	if indicator_data != null and indicator_data.shape == SkillIndicatorData.Shape.CIRCLE:
+		_indicator.rotation = 0.0
+		_indicator.global_position = _caster.global_position + _direction * max_range
+	else:
+		_indicator.global_position = _caster.global_position
+		_indicator.set_direction(_direction)
 	_indicator.show_indicator(indicator_data)
 
 func _default_direction() -> Vector2:

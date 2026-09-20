@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="GE_ApplyDamage" format=3]
+
+[ext_resource type="Script" path="res://skills/two_d/flat_damage_logic.gd" id="1_646dm"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/filters/gameplay_filter.gd" id="2_equed"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/effects/ge_apply_damage.gd" id="3_qyqw7"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/effects/gameplay_effect.gd" id="4_5wtvb"]
+
+[sub_resource type="Resource" id="Resource_w1agg"]
+script = ExtResource("1_646dm")
+damage_amount = 5.0
+
+[resource]
+script = ExtResource("3_qyqw7")
+damage_strategy = SubResource("Resource_w1agg")
+target_blocked_tags = Array[StringName]([&"state.invulnerable"])

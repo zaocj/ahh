@@ -18,3 +18,6 @@ class_name ProjectileData2D
 @export_group("Payload")
 ## Effects applied to whatever the projectile hits (GE_ApplyDamage, statuses, ...).
 @export var payload_effects: Array[GameplayEffect] = []
+## Field dropped at the impact point / end of flight: this is how the bomb
+## explodes (the same MagicField2D used for a lasting sigil, only shorter).
+@export var impact_field: MagicFieldData2D = null

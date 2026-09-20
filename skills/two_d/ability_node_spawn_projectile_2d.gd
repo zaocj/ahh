@@ -45,6 +45,8 @@ func _tick(instance: GAS_BTInstance, _delta: float) -> int:
 			push_warning("AbilityNodeSpawnProjectile2D: projectile has no launch().")
 		if "payload_effects" in projectile:
 			projectile.payload_effects = projectile_data.payload_effects.duplicate()
+		if "impact_field" in projectile:
+			projectile.impact_field = projectile_data.impact_field
 		if "instigator" in projectile:
 			projectile.instigator = instigator
 

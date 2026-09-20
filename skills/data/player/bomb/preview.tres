@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="IndicatorPreview2D" format=3]
+
+[ext_resource type="Resource" path="res://skills/data/player/bomb/indicator.tres" id="1_r0tru"]
+[ext_resource type="Script" path="res://skills/two_d/indicator_preview_2d.gd" id="2_eorn0"]
+
+[resource]
+script = ExtResource("2_eorn0")
+indicator_data = ExtResource("1_r0tru")
+max_range = 420.0

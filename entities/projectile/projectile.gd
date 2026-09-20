@@ -24,6 +24,8 @@ var direction: Vector2 = Vector2.RIGHT
 var distance_travelled: float = 0.0
 ## Effects applied to whatever it hits; filled in by the ability that fired it.
 var payload_effects: Array[GameplayEffect] = []
+## Field spawned where it stops (impact or end of flight) - the bomb's blast.
+var impact_field: MagicFieldData2D = null
 ## Who fired it: the effect instigator, and never a valid target.
 var instigator: Node = null
 
@@ -50,14 +52,28 @@ func _physics_process(delta: float) -> void:
 	distance_travelled += step
 	travelled.emit(distance_travelled)
 	if distance_travelled >= max_distance:
+		_detonate(global_position)
 		queue_free()
 
 func _on_body_entered(body: Node2D) -> void:
 	if body == instigator:
 		return
 	_deliver_payload(body)
+	_detonate(global_position)
 	impacted.emit(body)
 	queue_free()
+
+## Spawns the payload field (if any) at `position`.
+func _detonate(position: Vector2) -> void:
+	if impact_field == null or not is_instance_valid(impact_field.field_scene):
+		return
+	var parent: Node = get_parent()
+	if parent == null:
+		return
+	var field: Node = impact_field.field_scene.instantiate()
+	parent.add_child(field)
+	if field.has_method("start"):
+		field.start(impact_field, instigator, position)
 
 func _deliver_payload(target: Node) -> void:
 	if payload_effects.is_empty() or not _is_damageable(target):

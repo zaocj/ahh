@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="GameplayStatusData" format=3]
+
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/effects/gameplay_effect.gd" id="1_xbj6r"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/status/duration/duration_natural_time.gd" id="2_lx2wn"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/status/features/status_feature.gd" id="3_p00po"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/status/gameplay_status_data.gd" id="4_xoqx7"]
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/status/stacking/stacking_refresh_duration.gd" id="5_hij7h"]
+
+[sub_resource type="Resource" id="Resource_qptp2"]
+script = ExtResource("2_lx2wn")
+
+[sub_resource type="Resource" id="Resource_ypgqi"]
+script = ExtResource("5_hij7h")
+
+[resource]
+script = ExtResource("4_xoqx7")
+status_id = &"frozen"
+status_display_name = "Frozen"
+status_description = "Cannot move."
+duration = 1.5
+duration_policy = SubResource("Resource_qptp2")
+tags = Array[StringName]([&"status.frozen", &"state.frozen"])
+stacking_policy = SubResource("Resource_ypgqi")

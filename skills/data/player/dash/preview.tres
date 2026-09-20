@@ -1,18 +1,10 @@
 [gd_resource type="Resource" script_class="IndicatorPreview2D" format=3]
 
-[ext_resource type="Script" path="res://skills/two_d/skill_indicator_data.gd" id="1_ckqnb"]
+[ext_resource type="Resource" path="res://skills/data/player/dash/indicator.tres" id="1_ckqnb"]
 [ext_resource type="Script" path="res://skills/two_d/indicator_preview_2d.gd" id="2_te0cb"]
-
-[sub_resource type="Resource" id="Resource_mmhlt"]
-script = ExtResource("1_ckqnb")
-length = 168.0
-width = 8.0
-head_length = 34.0
-fill_color = Color(0.42, 0.86, 0.55, 0.2)
-outline_color = Color(0.55, 0.95, 0.68, 0.9)
 
 [resource]
 script = ExtResource("2_te0cb")
-indicator_data = SubResource("Resource_mmhlt")
+indicator_data = ExtResource("1_ckqnb")
 default_aim = 2
 max_range = 168.0

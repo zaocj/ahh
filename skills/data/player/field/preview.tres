@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="IndicatorPreview2D" format=3]
+
+[ext_resource type="Resource" path="res://skills/data/player/field/indicator.tres" id="1_ngdye"]
+[ext_resource type="Script" path="res://skills/two_d/indicator_preview_2d.gd" id="2_oogai"]
+
+[resource]
+script = ExtResource("2_oogai")
+indicator_data = ExtResource("1_ngdye")
+max_range = 380.0

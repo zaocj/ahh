@@ -21,6 +21,9 @@ extends CharacterBody2D
 @export var stats: StatBlock2D
 
 const HEALTH_VITAL: StringName = &"health"
+## Status that stops the enemy from walking (applied by the frost skill).
+const FREEZE_STATUS: StringName = &"frozen"
+const FROZEN_COLOR: Color = Color(0.45, 0.72, 0.98)
 const BAR_SIZE: Vector2 = Vector2(34.0, 5.0)
 const BAR_OFFSET: Vector2 = Vector2(0.0, -30.0)
 const BAR_BACK: Color = Color(0.05, 0.06, 0.10, 0.85)
@@ -33,6 +36,7 @@ var facing: Vector2 = Vector2.DOWN
 var target: Node2D = null
 
 @onready var _vitals: GameplayVitalAttributeComponent = $GameplayVitalAttributeComponent
+@onready var _statuses: GameplayStatusComponent = $GameplayStatusComponent
 @onready var _body: Polygon2D = $Body
 
 var _base_color: Color = Color.WHITE
@@ -45,14 +49,25 @@ func _ready() -> void:
 		_vitals.initialize(stats.attribute_sets, stats.vitals)
 	_vitals.vital_value_changed.connect(_on_vital_changed)
 	_vitals.vital_depleted.connect(_on_vital_depleted)
+	_statuses.status_applied.connect(_on_status_applied)
+	_statuses.status_removed.connect(_on_status_removed)
 
 func _physics_process(_delta: float) -> void:
+	# Frozen by the frost skill: rooted, but still a valid damage target.
+	if is_frozen():
+		velocity = Vector2.ZERO
+		return
+
 	var offset := target_offset()
 	velocity = Vector2.ZERO
 	if offset.length() > stop_distance:
 		velocity = offset.normalized() * speed
 		facing = velocity.normalized()
 	move_and_slide()
+
+## True while the frost status is on: the enemy cannot walk.
+func is_frozen() -> bool:
+	return _statuses.has_status(FREEZE_STATUS)
 
 ## The plugin vital holding this enemy's hit points.
 func health() -> GameplayVital:
@@ -78,11 +93,23 @@ func _on_vital_changed(vital_id: StringName, _current: float, _max: float, _perc
 	if vital != null and vital.is_alive:
 		_flash()
 
+func _on_status_applied(status_id: StringName, _instance: GameplayStatusInstance) -> void:
+	if status_id == FREEZE_STATUS:
+		_body.color = FROZEN_COLOR
+		queue_redraw()
+
+func _on_status_removed(status_id: StringName) -> void:
+	if status_id == FREEZE_STATUS:
+		_body.color = _base_color
+		queue_redraw()
+
 func _on_vital_depleted(vital_id: StringName) -> void:
 	if vital_id == HEALTH_VITAL:
 		queue_free()
 
 func _flash() -> void:
+	if is_frozen():
+		return
 	if _flash_tween != null and _flash_tween.is_valid():
 		_flash_tween.kill()
 	_body.color = FLASH_COLOR

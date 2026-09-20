@@ -6,6 +6,6 @@
 script = ExtResource("1_0vjya")
 length = 168.0
 width = 8.0
-head_length = 34.0
+head_length = 33.6
 fill_color = Color(0.42, 0.86, 0.55, 0.2)
 outline_color = Color(0.55, 0.95, 0.68, 0.9)
