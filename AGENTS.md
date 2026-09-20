@@ -97,3 +97,823 @@ export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
 
 - 已验证：场景/资源引用完整性；四方向移动、撞墙阻挡、摇杆拖动（抽取前的结构）；Android 可导出并签名
 - 未验证：场景抽取（实例化）后的 **y-sort 视觉层次**（需要一次干净截图）、真机/模拟器安装与运行、真实触摸（手指）路径
+
+可以。这个文件的目标不是把代码实现细节全部规定死，而是让 AI 在通过 Godot MCP 修改项目时，始终遵守“组合式、数据驱动技能系统”，避免 AI 后面越写越乱。
+
+
+## 技能系统
+1. Project Goal
+
+This project is a 2D real-time multiplayer action game inspired by games such as Brawl Stars.
+
+Core characteristics:
+
+* 2D mobile game
+* Short matches
+* Multiple playable heroes
+* Each hero can have multiple skills
+* A large number of skills, effects, buffs, debuffs, projectiles, areas, and interactions
+* Skills should be easy to create, modify, combine, and reuse
+* The project must remain maintainable as the number of heroes and skills grows
+
+The most important architectural principle is:
+
+Prefer composition over inheritance.
+
+Do not create a separate monolithic implementation for every skill.
+
+⸻
+
+2. Core Architecture
+
+The skill system uses:
+
+Composition
++
+Data-Driven Design
++
+Godot Nodes / Scenes
++
+Reusable Skill Actions
+
+The conceptual architecture is:
+
+SkillData
+    ↓
+SkillExecutor
+    ↓
+SkillContext
+    ↓
+SkillAction[]
+    ↓
+Game Entities / Effects
+    ↓
+Godot Nodes
+
+A skill should generally be composed from multiple reusable actions.
+
+For example:
+
+Fireball
+├── SpawnProjectile
+├── Damage
+├── Burn
+└── Knockback
+
+Instead of:
+
+FireballSkill.gd
+    ├── projectile logic
+    ├── damage logic
+    ├── burn logic
+    └── knockback logic
+
+⸻
+
+3. Composition Over Inheritance
+
+This is the most important rule in the project.
+
+Do NOT create deep skill inheritance hierarchies such as:
+
+Skill
+└── ProjectileSkill
+    └── FireProjectileSkill
+        └── BurningFireProjectileSkill
+            └── BurningKnockbackFireProjectileSkill
+
+Prefer:
+
+Skill
+├── SpawnProjectile
+├── Damage
+├── Burn
+└── Knockback
+
+Actions should be small, reusable, and composable.
+
+For example:
+
+IceProjectile
+├── SpawnProjectile
+├── Damage
+└── Slow
+DashAttack
+├── Dash
+├── DamageArea
+└── Knockback
+HealingSkill
+├── FindTargets
+└── Heal
+
+The goal is to make new skills mostly a matter of composition rather than writing new gameplay logic.
+
+⸻
+
+4. SkillData
+
+Skills should primarily be data-driven.
+
+A skill should have a data representation similar to:
+
+class_name SkillData
+extends Resource
+@export var skill_name: String
+@export var cooldown: float
+@export var actions: Array[SkillAction]
+
+The exact implementation may evolve, but the principle must remain:
+
+Skill configuration should be separated from skill execution logic.
+
+A .tres resource should be preferred for static skill configuration.
+
+Example:
+
+skills/
+├── colt/
+│   ├── basic_attack.tres
+│   └── super.tres
+├── shelly/
+│   ├── basic_attack.tres
+│   └── super.tres
+└── common/
+    ├── dash.tres
+    └── projectile.tres
+
+Do not hard-code large amounts of skill configuration inside hero scripts.
+
+⸻
+
+5. SkillAction
+
+A skill is a sequence or composition of reusable actions.
+
+Conceptually:
+
+class_name SkillAction
+extends Resource
+func execute(context: SkillContext) -> void:
+    pass
+
+Possible actions include:
+
+Damage
+Heal
+Dash
+Knockback
+Pull
+Teleport
+ApplyBuff
+ApplyDebuff
+SpawnProjectile
+SpawnArea
+SpawnEntity
+ModifyStat
+FindTargets
+PlayAnimation
+PlayEffect
+PlaySound
+
+New actions should be introduced when a behavior is:
+
+1. Reusable
+2. Conceptually independent
+3. Useful across multiple skills
+4. Easier to reason about as an independent operation
+
+Do not create an Action class for every tiny implementation detail.
+
+Avoid unnecessary abstraction.
+
+⸻
+
+6. SkillContext
+
+Skill execution should have a context object.
+
+Conceptually:
+
+SkillContext
+├── caster
+├── target
+├── targets
+├── position
+├── direction
+├── skill
+├── world
+└── runtime data
+
+The context allows actions to operate on the current skill execution without tightly coupling every action to a specific hero.
+
+For example:
+
+DamageAction
+    ↓
+context.targets
+
+instead of:
+
+DamageAction
+    ↓
+Hard-coded reference to HeroA
+
+Actions should be reusable across heroes.
+
+⸻
+
+7. Godot Nodes vs Skill Logic
+
+Do not turn every gameplay concept into a Godot Node.
+
+Use Godot Nodes for objects that exist in the game world.
+
+Examples:
+
+Hero
+Projectile
+Area
+Trap
+Pet
+Explosion
+FireZone
+Pickup
+
+These are appropriate as:
+
+Node2D
+CharacterBody2D
+Area2D
+etc.
+
+Use Resources or normal objects for reusable skill logic and configuration.
+
+Examples:
+
+SkillData
+SkillAction
+Damage configuration
+Buff configuration
+Effect configuration
+
+The distinction is:
+
+"How the skill behaves"
+        ↓
+Resource / logic
+"What physically exists in the game world"
+        ↓
+Godot Node
+
+⸻
+
+8. Projectile Design
+
+A projectile is a game-world entity.
+
+Therefore, it should generally be represented by a Godot Scene/Node.
+
+Example:
+
+projectiles/
+└── basic_projectile/
+    ├── BasicProjectile.tscn
+    └── BasicProjectile.gd
+
+The skill should request the creation/configuration of the projectile.
+
+The skill should NOT contain all projectile movement, collision, lifetime, rendering, and physics logic.
+
+Prefer:
+
+Skill
+    ↓
+SpawnProjectileAction
+    ↓
+Projectile.tscn
+    ↓
+Projectile.gd
+
+The projectile is responsible for being a projectile.
+
+The skill is responsible for deciding that a projectile should be spawned.
+
+⸻
+
+9. Effects
+
+Gameplay effects should also be reusable.
+
+Examples:
+
+Damage
+Heal
+Burn
+Poison
+Slow
+Stun
+Shield
+Knockback
+Knockup
+Silence
+
+Avoid implementing these effects separately inside every skill.
+
+Bad:
+
+Fireball.gd
+    apply_burn()
+IceBall.gd
+    apply_slow()
+PoisonBullet.gd
+    apply_poison()
+
+Prefer reusable effect implementations:
+
+DamageEffect
+BurnEffect
+SlowEffect
+PoisonEffect
+
+Then skills compose these effects.
+
+⸻
+
+10. Trigger-Based Gameplay
+
+The architecture should support event/trigger driven gameplay.
+
+Examples:
+
+OnHit
+OnDamage
+OnKill
+OnTakeDamage
+OnCast
+OnDash
+OnDeath
+OnProjectileHit
+OnEnterArea
+OnExitArea
+
+A passive ability can therefore be represented conceptually as:
+
+OnKill
+    ↓
+Heal
+
+or:
+
+OnTakeDamage
+    ↓
+Condition: HP < 30%
+    ↓
+ApplyShield
+
+This avoids creating a separate hard-coded implementation for every passive ability.
+
+⸻
+
+11. Conditions
+
+Skill actions may require conditions.
+
+Examples:
+
+Target is enemy
+Target is alive
+Target is within range
+Caster HP < 30%
+Target has Burn
+Target does not have Shield
+Critical hit
+
+Conceptually:
+
+Condition
+    ↓
+Action
+
+Example:
+
+If HP < 30%
+    ↓
+ApplyShield
+
+Conditions should also be reusable when appropriate.
+
+Do not duplicate identical condition logic across many skills.
+
+⸻
+
+12. Skill Execution
+
+A skill should generally follow this conceptual flow:
+
+Player Input
+    ↓
+Hero
+    ↓
+SkillExecutor
+    ↓
+SkillData
+    ↓
+Create SkillContext
+    ↓
+Execute Actions
+    ↓
+Modify Game State
+    ↓
+Spawn / Modify Godot Nodes
+    ↓
+Visual / Audio Feedback
+
+The Hero should not contain all skill-specific gameplay logic.
+
+The Hero should primarily provide:
+
+Input
+State
+Position
+Stats
+Movement
+Skill ownership
+Skill execution
+
+⸻
+
+13. Example Skills
+
+Basic Projectile
+
+BasicAttack
+├── SpawnProjectile
+└── Damage
+
+Fireball
+
+Fireball
+├── SpawnProjectile
+├── Damage
+└── Burn
+
+Ice Bullet
+
+IceBullet
+├── SpawnProjectile
+├── Damage
+└── Slow
+
+Dash Attack
+
+DashAttack
+├── Dash
+├── DamageArea
+└── Knockback
+
+Healing Skill
+
+HealingSkill
+├── FindAllies
+└── Heal
+
+Explosive Projectile
+
+Rocket
+├── SpawnProjectile
+└── OnProjectileHit
+    ├── DamageArea
+    └── Knockback
+
+⸻
+
+14. Do Not Over-Engineer
+
+This project does NOT require a full ECS architecture by default.
+
+Do not introduce ECS simply because the project has many skills.
+
+Godot’s Node/Scene architecture should remain the foundation.
+
+Prefer:
+
+Godot Nodes
++
+Resources
++
+Composition
++
+Events
++
+Reusable Actions
+
+over introducing a complete ECS framework unless there is a demonstrated technical requirement.
+
+The goal is maintainability and development speed.
+
+⸻
+
+15. File Organization
+
+Prefer colocating a scene and its script when they represent the same game entity.
+
+Example:
+
+entities/
+├── hero/
+│   ├── Hero.tscn
+│   └── Hero.gd
+│
+├── projectile/
+│   ├── Projectile.tscn
+│   └── Projectile.gd
+│
+└── fire_zone/
+    ├── FireZone.tscn
+    └── FireZone.gd
+
+Skill-related code can be organized as:
+
+skills/
+├── core/
+│   ├── SkillData.gd
+│   ├── SkillAction.gd
+│   ├── SkillContext.gd
+│   └── SkillExecutor.gd
+│
+├── actions/
+│   ├── DamageAction.gd
+│   ├── HealAction.gd
+│   ├── DashAction.gd
+│   ├── KnockbackAction.gd
+│   ├── SpawnProjectileAction.gd
+│   └── ApplyBuffAction.gd
+│
+├── effects/
+│   ├── BurnEffect.gd
+│   ├── SlowEffect.gd
+│   └── PoisonEffect.gd
+│
+└── data/
+    ├── hero_a/
+    └── hero_b/
+
+The exact folder structure can evolve, but the architectural separation should remain clear.
+
+⸻
+
+16. When Using Godot MCP
+
+When modifying the project through Godot MCP:
+
+1. Inspect the existing architecture before creating new files.
+2. Reuse existing Actions, Effects, Conditions, and Entities whenever possible.
+3. Do not create duplicate implementations of existing gameplay behavior.
+4. Prefer composition over creating a new specialized skill class.
+5. Prefer SkillData/Resources for static skill configuration.
+6. Prefer Godot Scenes/Nodes for world entities.
+7. Keep Hero scripts independent from individual skill implementations.
+8. Do not introduce ECS unless explicitly requested or technically justified.
+9. Do not create unnecessary abstractions.
+10. Preserve the existing architecture when adding new features.
+
+Before implementing a new skill, ask:
+
+Can this skill be implemented by composing existing Actions?
+
+If yes, compose existing Actions.
+
+If not, ask:
+
+Is the missing behavior reusable enough to become a new Action/Effect?
+
+If yes, create a reusable Action/Effect.
+
+Only create a skill-specific implementation when the behavior is genuinely unique and cannot reasonably be expressed through the existing composition system.
+
+⸻
+
+17. Avoid Skill-Specific God Objects
+
+Do not create classes such as:
+
+AllSkills.gd
+SkillManager.gd
+HeroSkillManager.gd
+GameSkillManager.gd
+
+that contain hundreds or thousands of lines of skill-specific logic.
+
+Managers should coordinate systems.
+
+They should not become repositories for every game’s special case.
+
+Bad:
+
+if skill_id == "fireball":
+    ...
+elif skill_id == "ice_ball":
+    ...
+elif skill_id == "dash":
+    ...
+elif skill_id == "rocket":
+    ...
+
+Prefer:
+
+SkillData
+    ↓
+SkillAction[]
+    ↓
+SkillExecutor
+
+⸻
+
+18. Reusability Rule
+
+Before writing new gameplay code, search for an existing implementation.
+
+For example, if a new skill needs:
+
+Damage
+
+do not create:
+
+FireballDamage.gd
+IceDamage.gd
+RocketDamage.gd
+
+Reuse:
+
+DamageAction
+
+If a new skill needs:
+
+Knockback
+
+reuse:
+
+KnockbackAction
+
+The objective is to build a small number of highly reusable primitives that can express many skills.
+
+⸻
+
+19. Skill System Design Philosophy
+
+The system should make this possible:
+
+Small number of primitives
+            +
+        Composition
+            =
+Large number of skills
+
+For example:
+
+10 Actions
+×
+Different parameters
+×
+Different combinations
+=
+Many different skills
+
+Do not optimize for the smallest amount of code.
+
+Optimize for:
+
+* Reusability
+* Composability
+* Testability
+* Predictability
+* Easy balancing
+* Easy iteration
+* Easy addition of new heroes
+* Easy addition of new skills
+
+⸻
+
+20. Multiplayer Consideration
+
+The game is intended to support real-time multiplayer.
+
+Therefore, skill logic should be designed so that gameplay state can eventually be authoritative on the server.
+
+Avoid putting critical gameplay state exclusively inside visual Nodes or animation callbacks.
+
+Separate:
+
+Gameplay State
+
+from:
+
+Presentation
+
+For example:
+
+Damage
+
+should be gameplay logic.
+
+While:
+
+Play hit animation
+Play sound
+Spawn hit particle
+
+are presentation.
+
+The architecture should make it possible to execute/validate gameplay actions independently from purely visual effects.
+
+⸻
+
+21. Presentation Separation
+
+Gameplay:
+
+Damage
+Heal
+Move
+Dash
+Knockback
+ApplyBuff
+SpawnProjectile
+
+Presentation:
+
+Animation
+Particle
+Sound
+Camera Shake
+Screen Effect
+
+Do not make gameplay correctness depend on whether an animation or particle node exists.
+
+For example:
+
+Damage
+    ↓
+Game State changes
+Hit VFX
+    ↓
+Presentation reacts to the damage
+
+not:
+
+HitAnimation
+    ↓
+Actually apply damage
+
+⸻
+
+22. AI Implementation Rule
+
+When an AI agent is asked to implement a new hero or skill, it should first identify:
+
+1. What is the skill's gameplay behavior?
+2. Which existing Actions can express it?
+3. Which existing Effects can express it?
+4. Which existing Conditions are required?
+5. Does the skill need a new world Entity/Node?
+6. Does a genuinely new reusable Action/Effect need to be created?
+
+Only after answering these questions should code be written.
+
+The AI should prefer:
+
+Reuse existing primitive
+
+over:
+
+Create a new specialized implementation
+
+⸻
+
+23. Final Architectural Principle
+
+The most important rule of this project is:
+
+A new skill should usually be created by composing existing capabilities, not by creating a new class containing all of its behavior.
+
+Think:
+
+Skill = Composition of Actions + Parameters + Conditions + Effects
+
+not:
+
+Skill = One Large Script
+
+Godot Nodes represent things that exist in the world.
+
+Resources represent reusable configuration and skill definitions.
+
+Actions represent reusable behavior.
+
+Effects represent reusable gameplay consequences.
+
+Events/Triggers connect gameplay situations to actions.
+
+Presentation reacts to gameplay instead of defining gameplay.
+
+Keep the system simple until real complexity requires additional abstraction.
