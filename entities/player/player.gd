@@ -16,6 +16,15 @@ signal blocked(direction: Vector2)
 ## Direction pushed by the on-screen joystick; combined with the key actions.
 var joystick_input: Vector2 = Vector2.ZERO
 
+## Last direction the player moved/faced. Skills use it as the default cast
+## direction (taps fire straight ahead).
+var facing: Vector2 = Vector2.RIGHT
+
+var _dash_direction: Vector2 = Vector2.ZERO
+var _dash_speed: float = 0.0
+var _dash_remaining: float = 0.0
+var _dash_active: bool = false
+
 ## True while the player pushes into a wall during the latest physics step.
 var is_blocked: bool = false
 
@@ -41,10 +50,21 @@ func _fit_body_to_collision_shape() -> void:
 	])
 
 func _physics_process(delta: float) -> void:
-	var direction := _input_direction()
-	var target_velocity := direction * speed
-	var rate := acceleration if direction != Vector2.ZERO else friction
-	velocity = velocity.move_toward(target_velocity, rate * delta)
+	var direction := Vector2.ZERO
+	var was_dashing := _dash_active
+	if _dash_active:
+		# One dash step, never overshooting the remaining distance.
+		var step := minf(_dash_speed * delta, _dash_remaining)
+		_dash_remaining = maxf(_dash_remaining - step, 0.0)
+		_dash_active = _dash_remaining > 0.0
+		velocity = _dash_direction * step / maxf(delta, 0.0001)
+	else:
+		direction = _input_direction()
+		if direction != Vector2.ZERO:
+			facing = direction
+		var target_velocity := direction * speed
+		var rate := acceleration if direction != Vector2.ZERO else friction
+		velocity = velocity.move_toward(target_velocity, rate * delta)
 
 	var before := global_position
 	move_and_slide()
@@ -52,9 +72,27 @@ func _physics_process(delta: float) -> void:
 	if travelled.length() > 0.01:
 		moved.emit(travelled.normalized())
 
+	# A dash ends without inertia, otherwise the leftover speed slides the player
+	# well past the configured distance.
+	if was_dashing and not _dash_active:
+		velocity = Vector2.ZERO
+
 	is_blocked = direction != Vector2.ZERO and is_on_wall()
 	if is_blocked:
 		blocked.emit(direction)
+
+## Called by DashAction: slide `distance` pixels along `direction`.
+func dash(direction: Vector2, distance: float, duration: float) -> void:
+	if direction == Vector2.ZERO or distance <= 0.0 or duration <= 0.0:
+		return
+	facing = direction.normalized()
+	_dash_direction = facing
+	_dash_speed = distance / duration
+	_dash_remaining = distance
+	_dash_active = true
+
+func is_dashing() -> bool:
+	return _dash_active
 
 ## Keyboard/gamepad actions take priority unless the joystick pushes further.
 func _input_direction() -> Vector2:

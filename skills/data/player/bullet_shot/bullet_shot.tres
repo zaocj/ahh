@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://skills/core/skill_data.gd" id="1_skill"]
+[ext_resource type="Script" path="res://skills/actions/spawn_projectile_action.gd" id="2_action"]
+[ext_resource type="Resource" path="res://skills/data/player/bullet_shot/indicator.tres" id="3_indicator"]
+[ext_resource type="PackedScene" path="res://entities/projectile/projectile.tscn" id="4_projectile"]
+
+[sub_resource type="Resource" id="Resource_spawn_projectile"]
+script = ExtResource("2_action")
+projectile_scene = ExtResource("4_projectile")
+speed = 520.0
+max_distance = 480.0
+
+[resource]
+script = ExtResource("1_skill")
+skill_id = &"bullet_shot"
+display_name = "Shot"
+cooldown = 1.0
+indicator = ExtResource("3_indicator")
+icon_color = Color(0.98, 0.72, 0.25, 1)
+actions = Array[SkillAction]([SubResource("Resource_spawn_projectile")])

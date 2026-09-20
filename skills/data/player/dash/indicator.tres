@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="SkillIndicatorData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://skills/core/skill_indicator_data.gd" id="1_indicator"]
+
+[resource]
+script = ExtResource("1_indicator")
+shape = 1
+length = 168.0
+width = 8.0
+head_length = 34.0
+fill_color = Color(0.42, 0.86, 0.55, 0.2)
+outline_color = Color(0.55, 0.95, 0.68, 0.9)
+outline_width = 2.0

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://skills/core/skill_data.gd" id="1_skill"]
+[ext_resource type="Script" path="res://skills/actions/dash_action.gd" id="2_action"]
+[ext_resource type="Resource" path="res://skills/data/player/dash/indicator.tres" id="3_indicator"]
+
+[sub_resource type="Resource" id="Resource_dash"]
+script = ExtResource("2_action")
+distance = 168.0
+duration = 0.16
+
+[resource]
+script = ExtResource("1_skill")
+skill_id = &"dash"
+display_name = "Dash"
+cooldown = 2.0
+indicator = ExtResource("3_indicator")
+icon_color = Color(0.42, 0.86, 0.55, 1)
+actions = Array[SkillAction]([SubResource("Resource_dash")])

@@ -25,15 +25,17 @@
 | `core/utils/` | 跨功能工具函数 | 空（占位） |
 | `entities/base/` | 实体基类（entity.gd / entity.tscn） | 空（占位） |
 | `entities/player/` | **玩家**：`player.gd` + `player.tscn` + `player_shape.tres` | 有内容 |
-| `entities/projectile/` | 子弹 / 投射物 | 空（占位） |
+| `entities/projectile/` | **投射物**：`projectile.gd` + `projectile.tscn` + `projectile_shape.tres`（匀速直飞，撞墙或飞满 `max_distance` 自毁） | 有内容 |
 | `entities/hitbox/` | 命中判定盒 | 空（占位） |
 | `entities/pickup/` | 拾取物（能量块、补给） | 空（占位） |
 | `heroes/base/` | 英雄基类（hero.gd / hero.tscn / hero_data.tres） | 空（占位） |
 | `heroes/<hero>/` | **一个英雄一个自包含目录**：`<hero>.gd` `<hero>.tscn` `<hero>_data.tres` 图标/立绘、以及该英雄专属 `skills/` | 空（占位：`warrior/` `ranger/` `assassin/`） |
-| `skills/base/` | 技能基类（skill.gd / skill.tscn） | 空（占位） |
-| `skills/<kind>/` | **一个技能一个目录**，按形态分类：`attack/`（普攻）`projectile/`（弹道）`dash/`（位移）`aoe/`（范围）`buff/`（增益） | 空（占位） |
+| `skills/core/` | 技能框架：`skill_data.gd`（技能配置）`skill_action.gd`（动作基类）`skill_context.gd`（本次施放上下文）`skill_executor.gd`（跑动作）`skill_controller.gd`（冷却 / 瞄准 / 施放）`skill_indicator.gd` + `skill_indicator_data.gd`（通用指示器） | 有内容 |
+| `skills/actions/` | **可复用动作**：`spawn_projectile_action.gd`、`dash_action.gd`。新行为优先加成这里的动作，而不是给某个技能写脚本 | 有内容 |
+| `skills/effects/` | 可复用效果（burn / slow / poison / shield …） | 空（占位） |
+| `skills/data/<owner>/<skill>/` | **一个技能一个目录**：`<skill>.tres`（SkillData）+ `indicator.tres`（SkillIndicatorData）。只放数据，不放逻辑 | 有内容（`player/bullet_shot`、`player/dash`） |
 | `maps/arena_01/` | **一张地图一个目录**：`arena_01.tscn`（根 `Arena01` + 子 `Terrain` TileMapLayer）、`arena_01_tileset.tres`、`terrain.gd`（按 ASCII 地图刷格） | 有内容 |
-| `ui/hud/` | 局内 HUD。现有 `virtual_joystick.gd`（触摸/鼠标摇杆） | 有内容 |
+| `ui/hud/` | 局内 HUD。现有 `virtual_joystick.gd`（触摸/鼠标摇杆）、`skill_button.gd`（技能按钮：短按直接施放，长按/拖动瞄准） | 有内容 |
 | `ui/battle/` | 对局内其它界面（倒计时、结算） | 空（占位） |
 | `ui/lobby/` | 大厅 / 主菜单 | 空（占位） |
 | `ui/hero_select/` | 选英雄界面 | 空（占位） |
@@ -50,14 +52,21 @@
 ```
 main/main.tscn        Main (Node2D, y_sort_enabled)
                       ├── HUD (CanvasLayer) → Status (Label) + Joystick (Control, virtual_joystick.gd)
+                      │                    → SkillBullet / SkillDash (Control, skill_button.gd)
                       ├── Player   ← 实例：entities/player/player.tscn（position 覆盖为出生点 656,368）
+                      │   └── Skills (SkillController) → Indicator (SkillIndicator)
                       └── Arena01  ← 实例：maps/arena_01/arena_01.tscn → Terrain (TileMapLayer)
 ```
 
 - **输入**：`project.godot` 里 4 个命名 action（`move_left/right/up/down`，WASD + 方向键）。`player.gd` 用 `Input.get_vector()` 读它们，摇杆则通过 `player.joystick_input` 汇入同一入口。→ 加新操作请加命名 action，不要用 `ui_*`。
 - **玩家视觉**：`Player/Body` 是 `Polygon2D`，颜色即"有色方块"。换成正式 Sprite 时删掉 `player.gd` 里推导多边形的代码即可。
+- **技能**：HUD 按钮 → `SkillController.press/drag/release(slot, 按钮中心相对坐标)`。短按（≤ `tap_max_duration` 且几乎没拖动）朝 `caster.facing` 直接施放；长按进瞄准状态，按技能自带的 `SkillData.indicator` 显示指示器，拖动方向覆盖朝向，松手施放。冷却由控制器按 slot 记账并广播 `cooldown_changed(slot, remaining, total)`，按钮画成扇形遮罩。
+  施放路径：`SkillController.cast()` → 建 `SkillContext`（caster / origin / direction / world）→ `SkillExecutor.execute()` → 依次跑 `SkillData.actions`。**动作只读 context，不认识具体英雄**。
+- **加一个新技能**：先在 `skills/data/<owner>/<skill>/` 写两个 `.tres`（`<skill>.tres` 的 `actions` 里塞现有动作 + `indicator.tres`），再在 `player.tscn` 的 `Skills.skills` 数组里加一项、在 `main.gd::skill_buttons` 里加一个按钮。只有行为确实不可复用时，才去 `skills/actions/` 加新动作（并同时在 `SkillContext` 里考虑要不要加字段）。
+- **碰撞层约定**：layer 1 = 地形/墙，layer 2 = 角色，layer 3 = 投射物。投射物 `collision_layer = 4` / `collision_mask = 3`，靠 `_caster` 引用忽略发射者自己（Godot 4.7 **没有** `add_collision_exception_with()`，别照旧文档写）。
 - **地形**：`maps/arena_01/terrain.gd` 的 `ARENA` 常量（每格一字符：`#` 墙、`.` 地面、`o` 地台）在 `_ready()` 里 `set_cell` 刷出来。只有**墙格**带碰撞多边形（在 `arena_01_tileset.tres` 里）。想改成在 TileMap 面板手工刷 → 删掉该脚本即可无缝替换。
 - **y-sort**：`Main` / `Arena01` / `Terrain` 都开 `y_sort_enabled`，且 `Terrain.y_sort_origin = 0`。这个值决定玩家能否画在地砖之上，**改完必须截图确认**（踩过：设成 32 时地台格把玩家盖住了）。
+  已知遗留：出生点就踩在 `o` 地台上，地台格与玩家 y 相同 → 地台格画在玩家之上，**出生时看不到自己**（改本文件时实测：`HEAD` 版本也有，不是新引入的）。要修就给地台瓦片在 `arena_01_tileset.tres` 里设负的 `y_sort_origin`，或把出生点挪到普通地面。
 
 ## 已知坑（踩过，别重复）
 
@@ -66,10 +75,12 @@ main/main.tscn        Main (Node2D, y_sort_enabled)
    验证是否真的生效：查 `.import` 里 `source_file` 是否已是新路径 —— 别只看 `.godot/imported/` 有没有同名文件，旧缓存会骗你。
 2. **`player.tscn` 里 `Body.polygon` 故意是退化值**，由 `player.gd::_fit_body_to_collision_shape()` 在 `_ready()` 里按 `player_shape.tres` 的尺寸推导。原因是编辑器桥无法表达 `PackedVector2Array`。**别删那段代码，也别把退化多边形当 bug 修**。
 3. **编辑器桥的 `instantiate_scene` 会把预制的子节点一起写进父场景**（缺 `index=` 覆盖标记）→ 加载时与预制自带子节点**重名重复**（实测：玩家出现 6 个子节点、2 个激活相机）。插入实例后要确认父场景 `.tscn` 只保留 `[node ... instance=ExtResource("…")]` 一行加必要的覆盖属性，然后 `editor_control` action=reload。
-   验证方式：探针里 `player.get_children().size()` 应为 **3**。
+   验证方式：探针里 `player.get_children().size()` 应为 **4**（CollisionShape2D / Body / Camera / Skills）。
 4. **编辑器 MCP 会话记录只在编辑器启动时写一次**（`.godot/godot_agent_loop/editor-session.json`）。任何 headless 编辑器进程（`--import` / `--export-*`）都会覆盖并删掉它 → 之后 MCP 的 `editor_*` / `run_project` 会被拒绝（`pause state could not be confirmed`）。处理：重启一个编辑器窗口，或 `editor_session ensure`（launchIfNeeded）。
 5. **`.gd.uid` 必须跟脚本一起移动**（uid 决定引用解析）；移动脚本后同时更新引用它的 `.tscn` 里的 `path=`。不要手写或手删 uid 文件。
 6. `project.godot` 的 `[editor_plugins] enabled` 里出现过重复的裸名条目（`"godot_agent_loop"`，与规范路径条目并存），会让每次 headless 编辑器启动多打一行 `ERROR: Condition "p_enabled && addon_name_to_plugin.has(addon_path)"`。删掉裸名条目可以消掉这行，但**会复现**（插件/编辑器保存项目设置时又写回来）。
+7. **Godot 4.7 删掉了 `CollisionObject2D.add_collision_exception_with()` / `get_collision_exceptions()`**（旧文档/旧代码里到处都是）。要让投射物不撞发射者，得用碰撞层 + 自己记 `_caster` 引用（见上方“碰撞层约定”）。判据：`--check-only` 会直接报 `Function "add_collision_exception_with()" not found in base self`。
+8. **新增 `class_name` 脚本后，`--check-only` / 无编辑器跑会报 `Could not find type "Xxx"`** —— 因为 `.godot/global_script_class_cache.cfg` 没更新。跑一次 `--import` 就会刷新（同一个 `--import` 还会生成 `.gd.uid`）。注意该进程会覆盖并删除 `.godot/godot_agent_loop/editor-session.json`（见坑 4）：需要保留正在开的编辑器会话就先把该文件备份再拷回去。
 
 ## 常用命令
 
@@ -93,10 +104,18 @@ export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
 
 用 pi / Godot Agent Loop（MCP）时优先走 MCP：**改场景**用 `editor_transaction`（可撤销），**运行观察**用 `run_project` + `game_*`，**断言**用 `verify_project`。不要手写 `.tscn`。
 
+> 若 MCP 报 `Project path is outside the allowed roots`：MCP 服务进程没拿到路径白名单。它只认启动时的环境变量 `GODOT_MCP_ALLOWED_DIRS`（如 `/Users/zj/godot_project`）；pi 下这个值来自 `@beremaran/godot-agent-loop` 的 `agent-plugin/adapter-manifest.json` 的 `mcp.environment`，**只在 session 启动时读一次** → 改完要重开 session / 重启 pi。
+
 ## 验证状态（截至本文件编写时）
 
-- 已验证：场景/资源引用完整性；四方向移动、撞墙阻挡、摇杆拖动（抽取前的结构）；Android 可导出并签名
-- 未验证：场景抽取（实例化）后的 **y-sort 视觉层次**（需要一次干净截图）、真机/模拟器安装与运行、真实触摸（手指）路径
+- 已验证：场景/资源引用完整性；四方向移动、撞墙阻挡、摇杆拖动；Android 可导出并签名
+- 已验证（技能系统，一次 headless 跑通 50 条断言 + 截图）：`bullet_shot.tres` / `dash.tres` 能加载且动作类型正确；短按朝面向发射、发射后进 1s 冷却、冷却中按键无效；子弹 520px/s 飞 480px 后自毁；长按出指示器（箭头方向随拖动、位置跟随施法者）、松手隐藏并按指示方向施放；dash 短按位移正好 168px、2s 冷却、长按同样有指示器
+- 已验证（视觉）：指示器箭头/颜色/长度、HUD 按钮与冷却扇形遮罩、飞行中的子弹 —— 截图脚本 `.godot/shots.gd`（往 `/tmp/shot_*.png` 写图）
+- 可重跑：`"$GODOT" --headless --path . --fixed-fps 60 --script res://.godot/verify_skills.gd`（58 条断言；`--fixed-fps` 让帧时间固定，否则冷却/位移无法断言）。两个 harness 都在 `.godot/` 里（gitignored，不会被提交）
+- 踩过：headless 的根 viewport 默认只有 64x64，测 HUD 前必须 `root.size = Vector2i(1152, 648)`；注入鼠标事件用 `root.push_input(event, true)`（`in_local_coords`，否则窗口偏移会被算两次）
+- 未验证：真机/模拟器安装与运行、真实触摸（手指）路径、多人同步
+
+> 本文件的技能章节（下方）是硬约束：**新技能 = 组合现有 Action/Effect + 参数 + 条件**，不要为每个技能写专门的脚本。
 
 可以。这个文件的目标不是把代码实现细节全部规定死，而是让 AI 在通过 Godot MCP 修改项目时，始终遵守“组合式、数据驱动技能系统”，避免 AI 后面越写越乱。
 

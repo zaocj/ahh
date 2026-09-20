@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://da4uvvnyottmp" path="res://maps/arena_01/arena_01.tscn" id="4_kfbq2"]
 [ext_resource type="PackedScene" uid="uid://s4yw6rfkfgto" path="res://entities/player/player.tscn" id="5_4dugh"]
 [ext_resource type="Script" uid="uid://bypqceqng7jru" path="res://ui/hud/virtual_joystick.gd" id="5_85g3d"]
+[ext_resource type="Script" path="res://ui/hud/skill_button.gd" id="6_skillbtn"]
 
 [node name="Main" type="Node2D" unique_id=750140780]
 y_sort_enabled = true
@@ -31,6 +32,36 @@ offset_right = 256.0
 offset_bottom = -36.0
 grow_vertical = 0
 script = ExtResource("5_85g3d")
+
+[node name="SkillBullet" type="Control" parent="HUD"]
+layout_mode = 3
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -256.0
+offset_top = -256.0
+offset_right = -56.0
+offset_bottom = -56.0
+grow_horizontal = 0
+grow_vertical = 0
+script = ExtResource("6_skillbtn")
+
+[node name="SkillDash" type="Control" parent="HUD"]
+layout_mode = 3
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -406.0
+offset_top = -196.0
+offset_right = -276.0
+offset_bottom = -66.0
+grow_horizontal = 0
+grow_vertical = 0
+script = ExtResource("6_skillbtn")
 
 [node name="Player" parent="." unique_id=1803391748 instance=ExtResource("5_4dugh")]
 position = Vector2(656, 368)
