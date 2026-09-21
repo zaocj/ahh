@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="IndicatorPreview2D" format=3 uid="uid://bp0n3d8bljaim"]
 
 [ext_resource type="Resource" uid="uid://bkesimjiuic0x" path="res://skills/data/player/bomb/indicator.tres" id="1_eorn0"]
-[ext_resource type="Resource" path="res://skills/data/player/bomb/range.tres" id="2_gmiq4"]
+[ext_resource type="Resource" uid="uid://cbnlcddfsrti0" path="res://skills/data/player/bomb/range.tres" id="2_gmiq4"]
 [ext_resource type="Script" uid="uid://boq5oetvegoqs" path="res://skills/two_d/indicator_preview_2d.gd" id="3_at0nc"]
 
 [resource]

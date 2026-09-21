@@ -58,7 +58,11 @@ func targets_inside() -> Array[Node]:
 	var found: Array[Node] = []
 	if data == null or not is_inside_tree():
 		return found
-	for node in get_tree().get_nodes_in_group(data.target_group):
+	var team := Teams.team_of(instigator)
+	# A team-owned field hits the other side, whoever they are; the data-driven
+	# `target_group` stays as the fallback for fields without a team owner.
+	var group := Teams.enemy_group_of(team) if team >= 0 else data.target_group
+	for node in get_tree().get_nodes_in_group(group):
 		var target := node as Node2D
 		if target == null or not is_instance_valid(target):
 			continue

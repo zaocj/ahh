@@ -33,7 +33,8 @@ var payload_effects: Array[GameplayEffect] = []
 var impact_field: MagicFieldData2D = null
 ## Who fired it: the effect instigator, and never a valid target.
 var instigator: Node = null
-## Group the projectile may damage; empty = anything with a vital component.
+## Fallback group filter, used only when the instigator has no team (scenery-owned
+## shots, tests). Team-based friendly fire goes through `Teams.can_damage()`.
 var target_group: StringName = &""
 ## Lobbed: flies over bodies and walls, then detonates at `max_distance`. The
 ## payload is delivered by the impact field, never by contact.
@@ -80,8 +81,12 @@ func _on_body_entered(body: Node2D) -> void:
 		return
 	if body == instigator:
 		return
-	# Wrong faction: fly on, this body is not a target of this projectile.
-	if target_group != &"" and not body.is_in_group(target_group):
+	# One friendly-fire rule for the whole game: the shot asks the teams, so a new
+	# skill cannot forget a `target_group` and hit its own side.
+	if not Teams.can_damage(instigator, body):
+		return
+	# Teamless instigator: fall back to the data-driven group filter.
+	if Teams.team_of(instigator) < 0 and target_group != &"" and not body.is_in_group(target_group):
 		return
 	_deliver_payload(body)
 	_detonate(global_position)

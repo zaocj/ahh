@@ -1,0 +1,30 @@
+[gd_scene format=3 uid="uid://m4adgqg8iebk"]
+
+[ext_resource type="Script" uid="uid://0qjprp6f52o3" path="res://entities/base/unit.gd" id="1_hkk6c"]
+[ext_resource type="Shape2D" path="res://entities/base/unit_shape.tres" id="2_j0fih"]
+[ext_resource type="Script" uid="uid://bhopvoj74pcwj" path="res://addons/godot_ability_system/scripts/components/gameplay_vital_attribute_component.gd" id="3_j0fih"]
+[ext_resource type="Script" uid="uid://b6hkniyhlhrsf" path="res://addons/godot_ability_system/scripts/components/gameplay_status_component.gd" id="4_sm0ff"]
+[ext_resource type="Script" uid="uid://n8p5beakef7b" path="res://addons/godot_ability_system/scripts/components/gameplay_ability_component.gd" id="5_bnlev"]
+
+[node name="Unit" type="CharacterBody2D" unique_id=376156076]
+y_sort_enabled = true
+collision_layer = 2
+collision_mask = 3
+motion_mode = 1
+script = ExtResource("1_hkk6c")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=795001801]
+shape = ExtResource("2_j0fih")
+
+[node name="Body" type="Polygon2D" parent="." unique_id=398329633]
+color = Color(0.95, 0.36, 1, 1)
+polygon = PackedVector2Array(-14, -14, 14, -14, 14, 14, -14, 14)
+
+[node name="GameplayVitalAttributeComponent" type="Node" parent="." unique_id=679106635]
+script = ExtResource("3_j0fih")
+
+[node name="GameplayStatusComponent" type="Node" parent="." unique_id=790033478]
+script = ExtResource("4_sm0ff")
+
+[node name="Abilities" type="Node" parent="." unique_id=1728192249]
+script = ExtResource("5_bnlev")

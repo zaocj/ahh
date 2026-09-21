@@ -1,0 +1,94 @@
+[gd_resource type="Resource" script_class="TeamRoster" format=3 uid="uid://cshjfdfvkw1jw"]
+
+[ext_resource type="Script" uid="uid://eff66dm1xg8r" path="res://heroes/base/hero_data.gd" id="1_nuxsp"]
+[ext_resource type="Script" uid="uid://bm4h231fb21pv" path="res://addons/godot_ability_system/scripts/abilities/gameplay_ability_definition.gd" id="2_rw2qv"]
+[ext_resource type="Resource" uid="uid://4ewt3qopu3yc" path="res://skills/data/player/shot/shot.tres" id="3_xsa43"]
+[ext_resource type="Resource" uid="uid://ch4s2h2bgnmdw" path="res://skills/data/player/dash/dash.tres" id="4_b8lt2"]
+[ext_resource type="Script" uid="uid://dygdw6xsxo8kr" path="res://skills/two_d/ability_loadout_2d.gd" id="5_8d6ej"]
+[ext_resource type="Resource" uid="uid://bipj84n3jb0uj" path="res://skills/data/shared/vitals/player_stats.tres" id="6_dg6sm"]
+[ext_resource type="Resource" uid="uid://dhjdc0wxud46v" path="res://skills/data/player/heal/heal.tres" id="7_x6maf"]
+[ext_resource type="Resource" uid="uid://bmihqlhops4jr" path="res://skills/data/player/field/field.tres" id="8_38pfd"]
+[ext_resource type="Resource" uid="uid://c0ah1h8u6h8bo" path="res://skills/data/player/frost/frost.tres" id="9_32avu"]
+[ext_resource type="Resource" uid="uid://w78botlk1i00" path="res://skills/data/player/bomb/bomb_skill.tres" id="10_2oaqw"]
+[ext_resource type="Script" uid="uid://dpt6o27h6qay1" path="res://core/battle/team_roster.gd" id="11_78c6k"]
+
+[sub_resource type="Resource" id="Resource_ohrc1"]
+script = ExtResource("5_8d6ej")
+abilities = Array[ExtResource("2_rw2qv")]([ExtResource("3_xsa43"), ExtResource("4_b8lt2")])
+inventory = Array[ExtResource("2_rw2qv")]([ExtResource("3_xsa43"), ExtResource("4_b8lt2")])
+
+[sub_resource type="Resource" id="Resource_ogj7l"]
+script = ExtResource("1_nuxsp")
+hero_id = &"gunner"
+display_name = "Gunner"
+description = "Auto-aimed bullet: 10 damage per hit."
+color = Color(0.98, 0.72, 0.25, 1)
+skill_name = "Shot"
+loadout = SubResource("Resource_ohrc1")
+stats = ExtResource("6_dg6sm")
+
+[sub_resource type="Resource" id="Resource_nbhv4"]
+script = ExtResource("5_8d6ej")
+abilities = Array[ExtResource("2_rw2qv")]([ExtResource("7_x6maf"), ExtResource("4_b8lt2")])
+inventory = Array[ExtResource("2_rw2qv")]([ExtResource("7_x6maf"), ExtResource("4_b8lt2")])
+
+[sub_resource type="Resource" id="Resource_8og7v"]
+script = ExtResource("1_nuxsp")
+hero_id = &"medic"
+display_name = "Medic"
+description = "Restore 30 health to itself."
+color = Color(0.45, 0.92, 0.6, 1)
+skill_name = "Heal"
+loadout = SubResource("Resource_nbhv4")
+stats = ExtResource("6_dg6sm")
+
+[sub_resource type="Resource" id="Resource_1ejp0"]
+script = ExtResource("5_8d6ej")
+abilities = Array[ExtResource("2_rw2qv")]([ExtResource("8_38pfd"), ExtResource("4_b8lt2")])
+inventory = Array[ExtResource("2_rw2qv")]([ExtResource("8_38pfd"), ExtResource("4_b8lt2")])
+
+[sub_resource type="Resource" id="Resource_2obea"]
+script = ExtResource("1_nuxsp")
+hero_id = &"sigil"
+display_name = "Sigil"
+description = "Place a sigil: 8 damage every 0.8s for 5s inside 110px."
+color = Color(0.72, 0.5, 1, 1)
+skill_name = "Sigil"
+loadout = SubResource("Resource_1ejp0")
+stats = ExtResource("6_dg6sm")
+
+[sub_resource type="Resource" id="Resource_6en1s"]
+script = ExtResource("5_8d6ej")
+abilities = Array[ExtResource("2_rw2qv")]([ExtResource("9_32avu"), ExtResource("4_b8lt2")])
+inventory = Array[ExtResource("2_rw2qv")]([ExtResource("9_32avu"), ExtResource("4_b8lt2")])
+
+[sub_resource type="Resource" id="Resource_pbt5a"]
+script = ExtResource("1_nuxsp")
+hero_id = &"frost"
+display_name = "Frost"
+description = "Icy bolt: 5 damage and a 1.5s freeze (a frozen caster cannot shoot)."
+color = Color(0.55, 0.82, 1, 1)
+skill_name = "Frost"
+loadout = SubResource("Resource_6en1s")
+stats = ExtResource("6_dg6sm")
+
+[sub_resource type="Resource" id="Resource_o87ns"]
+script = ExtResource("5_8d6ej")
+abilities = Array[ExtResource("2_rw2qv")]([ExtResource("10_2oaqw"), ExtResource("4_b8lt2")])
+inventory = Array[ExtResource("2_rw2qv")]([ExtResource("10_2oaqw"), ExtResource("4_b8lt2")])
+
+[sub_resource type="Resource" id="Resource_7bacj"]
+script = ExtResource("1_nuxsp")
+hero_id = &"bomber"
+display_name = "Bomber"
+description = "Throw a grenade anywhere in the ring: 25 damage in a 95px blast."
+color = Color(1, 0.55, 0.2, 1)
+skill_name = "Bomb"
+loadout = SubResource("Resource_o87ns")
+stats = ExtResource("6_dg6sm")
+
+[resource]
+script = ExtResource("11_78c6k")
+selectable = Array[ExtResource("1_nuxsp")]([SubResource("Resource_ogj7l"), SubResource("Resource_pbt5a"), SubResource("Resource_7bacj"), SubResource("Resource_2obea"), SubResource("Resource_8og7v")])
+blue = Array[ExtResource("1_nuxsp")]([SubResource("Resource_ogj7l"), SubResource("Resource_8og7v"), SubResource("Resource_2obea")])
+red = Array[ExtResource("1_nuxsp")]([SubResource("Resource_pbt5a"), SubResource("Resource_7bacj"), SubResource("Resource_ogj7l")])

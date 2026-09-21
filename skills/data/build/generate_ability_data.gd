@@ -12,6 +12,7 @@ extends Node
 ## the editor. Re-running this scene overwrites them.
 
 const ROOT := "res://skills/data/"
+const HEROES_ROOT := "res://heroes/"
 const PROJECTILE_SCENE := "res://entities/projectile/projectile.tscn"
 const FIELD_SCENE := "res://entities/magic_field/magic_field.tscn"
 
@@ -29,9 +30,8 @@ func _ready() -> void:
 	_generate_bomb()
 	_generate_field()
 	_generate_heal()
-	_generate_loadout()
-	_generate_enemy_bolt()
-	_generate_enemy_loadout()
+	_generate_heroes()
+	_generate_spawn_layout()
 	print("generate_ability_data: done")
 	get_tree().quit(0)
 
@@ -291,50 +291,95 @@ func _generate_heal() -> void:
 		ROOT + "player/heal/heal.tres")
 #endregion
 
-#region ========== loadout (slot 0 is swappable from the drawer) ==========
-func _generate_loadout() -> void:
-	var shot := load(ROOT + "player/shot/shot.tres") as GameplayAbilityDefinition
+#region ========== heroes (the 5 skills become 5 characters) ==========
+## A hero is data: the same `entities/base/unit.tscn` is instantiated for every seat
+## of a 3v3 match, and this resource says how it looks and what it may cast.
+## Slot 0 is the signature skill, slot 1 the shared dash every hero gets.
+func _generate_heroes() -> void:
 	var dash := load(ROOT + "player/dash/dash.tres") as GameplayAbilityDefinition
-	var frost := load(ROOT + "player/frost/frost.tres") as GameplayAbilityDefinition
-	var bomb := load(ROOT + "player/bomb/bomb_skill.tres") as GameplayAbilityDefinition
-	var field := load(ROOT + "player/field/field.tres") as GameplayAbilityDefinition
-	var heal := load(ROOT + "player/heal/heal.tres") as GameplayAbilityDefinition
+	var gunner := _hero(&"gunner", "Gunner", "Auto-aimed bullet: 10 damage per hit.",
+		Color(0.98, 0.72, 0.25), ROOT + "player/shot/shot.tres", dash)
+	var frost := _hero(&"frost", "Frost", "Icy bolt: 5 damage and a 1.5s freeze (a frozen caster cannot shoot).",
+		Color(0.55, 0.82, 1.0), ROOT + "player/frost/frost.tres", dash)
+	var bomber := _hero(&"bomber", "Bomber", "Throw a grenade anywhere in the ring: 25 damage in a 95px blast.",
+		Color(1.0, 0.55, 0.2), ROOT + "player/bomb/bomb_skill.tres", dash)
+	var sigil := _hero(&"sigil", "Sigil", "Place a sigil: 8 damage every 0.8s for 5s inside 110px.",
+		Color(0.72, 0.5, 1.0), ROOT + "player/field/field.tres", dash)
+	var medic := _hero(&"medic", "Medic", "Restore 30 health to itself.",
+		Color(0.45, 0.92, 0.6), ROOT + "player/heal/heal.tres", dash)
 
+	# Roster: blue[0] is the seat the local player takes when nothing was picked on
+	# the character select screen (tests rely on that default), the rest are bots.
+	var roster := TeamRoster.new()
+	var selectable: Array[HeroData] = [gunner, frost, bomber, sigil, medic]
+	var blue: Array[HeroData] = [gunner, medic, sigil]
+	var red: Array[HeroData] = [frost, bomber, gunner]
+	roster.selectable = selectable
+	roster.blue = blue
+	roster.red = red
+	_save(roster, HEROES_ROOT + "roster.tres")
+
+func _hero(id: StringName, display: String, description: String, color: Color,
+		signature_path: String, dash: GameplayAbilityDefinition) -> HeroData:
+	var signature := load(signature_path) as GameplayAbilityDefinition
 	var loadout := AbilityLoadout2D.new()
-	var equipped: Array[GameplayAbilityDefinition] = [shot, dash]
-	var inventory: Array[GameplayAbilityDefinition] = [shot, frost, bomb, field, heal]
-	loadout.abilities = equipped
-	loadout.inventory = inventory
-	_save(loadout, ROOT + "player/loadout.tres")
+	var abilities: Array[GameplayAbilityDefinition] = [signature, dash]
+	loadout.abilities = abilities
+	loadout.inventory = abilities
+
+	var hero := HeroData.new()
+	hero.hero_id = id
+	hero.display_name = display
+	hero.description = description
+	hero.color = color
+	hero.skill_name = signature.ability_name if signature != null else ""
+	hero.loadout = loadout
+	hero.stats = load(ROOT + "shared/vitals/player_stats.tres")
+	_save(hero, HEROES_ROOT + id + "/" + id + "_data.tres")
+	return hero
 #endregion
 
-#region ========== enemy skills (cast by AiAbilityRouter, never previewed) ==========
-func _generate_enemy_bolt() -> void:
-	var bolt := ProjectileData2D.new()
-	# Slower than the player's bullet: the player is meant to dodge it.
-	bolt.speed = 330.0
-	bolt.max_distance = 560.0
-	bolt.projectile_scene = load(PROJECTILE_SCENE)
-	# Enemy fire only hurts the player: an Area2D cannot tell friend from foe, so
-	# the projectile filters the bodies it may damage by group.
-	bolt.target_group = &"players"
-	var payload: Array[GameplayEffect] = [load(ROOT + "shared/effects/bullet_damage.tres")]
-	bolt.payload_effects = payload
-	_save(bolt, ROOT + "enemy/bolt/bolt.tres")
+#region ========== match data (spawns come from the arena itself) ==========
+## Spawn points are read out of the arena's own ASCII map, so a 3v3 lineup always
+## starts on walkable floor even after the map is edited (tests/verify_3v3.gd
+## asserts every point is on a floor cell).
+func _generate_spawn_layout() -> void:
+	var rows := _arena_rows()
+	var layout := SpawnLayout.new()
+	# Walk inwards from each side's outer edge: the first floor cell wins.
+	layout.blue_points = _side_points(rows, 2, 11)
+	layout.red_points = _side_points(rows, 37, 28)
+	_save(layout, "res://maps/arena_01/spawns.tres")
 
-	# No preview strategy: an AI aims through the cast context, so it never touches
-	# the preview strategy resource that every caster of a definition shares.
-	_save(_ability(&"bolt", "Bolt", "Enemy shot: 10 damage to whoever it hits.",
-		1.4, [], _tree([_commit_cooldown(), _spawn_projectile(bolt)])),
-		ROOT + "enemy/bolt/bolt_skill.tres")
+func _arena_rows() -> PackedStringArray:
+	var terrain := load("res://maps/arena_01/terrain.gd") as GDScript
+	var constants := terrain.get_script_constant_map()
+	return constants["ARENA"]
 
-func _generate_enemy_loadout() -> void:
-	var bolt := load(ROOT + "enemy/bolt/bolt_skill.tres") as GameplayAbilityDefinition
-	var loadout := AbilityLoadout2D.new()
-	var equipped: Array[GameplayAbilityDefinition] = [bolt]
-	loadout.abilities = equipped
-	loadout.inventory = equipped
-	_save(loadout, ROOT + "enemy/loadout.tres")
+func _side_points(rows: PackedStringArray, first_col: int, last_col: int) -> Array[Vector2]:
+	const TILE: float = 32.0
+	var points: Array[Vector2] = []
+	for fraction in [0.3, 0.5, 0.7]:
+		var row := int(round(float(rows.size() - 1) * fraction))
+		var col := _walkable_column(rows, row, first_col, last_col)
+		points.append(Vector2(col * TILE + TILE * 0.5, row * TILE + TILE * 0.5))
+	return points
+
+func _walkable_column(rows: PackedStringArray, row: int, first_col: int, last_col: int) -> int:
+	var step := 1 if first_col < last_col else -1
+	var col := first_col
+	while col != last_col + step:
+		if _is_floor(rows, row, col):
+			return col
+		col += step
+	return first_col
+
+func _is_floor(rows: PackedStringArray, row: int, col: int) -> bool:
+	if row < 0 or row >= rows.size():
+		return false
+	if col < 0 or col >= rows[row].length():
+		return false
+	return rows[row][col] != "#"
 #endregion
 
 #region ========== builders ==========

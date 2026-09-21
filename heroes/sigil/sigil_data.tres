@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="HeroData" format=3]
+
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/gameplay_ability_definition.gd" id="1_ev1i1"]
+[ext_resource type="Resource" path="res://skills/data/player/field/field.tres" id="2_nre8c"]
+[ext_resource type="Resource" path="res://skills/data/player/dash/dash.tres" id="3_6lh88"]
+[ext_resource type="Script" path="res://skills/two_d/ability_loadout_2d.gd" id="4_o7nhu"]
+[ext_resource type="Script" path="res://heroes/base/hero_data.gd" id="5_sp6jv"]
+[ext_resource type="Resource" path="res://skills/data/shared/vitals/player_stats.tres" id="6_ynjt8"]
+
+[sub_resource type="Resource" id="Resource_1ejp0"]
+script = ExtResource("4_o7nhu")
+abilities = Array[ExtResource("1_ev1i1")]([ExtResource("2_nre8c"), ExtResource("3_6lh88")])
+inventory = Array[ExtResource("1_ev1i1")]([ExtResource("2_nre8c"), ExtResource("3_6lh88")])
+
+[resource]
+script = ExtResource("5_sp6jv")
+hero_id = &"sigil"
+display_name = "Sigil"
+description = "Place a sigil: 8 damage every 0.8s for 5s inside 110px."
+color = Color(0.72, 0.5, 1, 1)
+skill_name = "Sigil"
+loadout = SubResource("Resource_1ejp0")
+stats = ExtResource("6_ynjt8")

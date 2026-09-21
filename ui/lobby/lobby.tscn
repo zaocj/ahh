@@ -1,0 +1,59 @@
+[gd_scene format=3 uid="uid://dbc6wx8uw0gpi"]
+
+[ext_resource type="Script" path="res://ui/lobby/lobby.gd" id="1_l4sf2"]
+[ext_resource type="Script" uid="uid://c2qhbehsusu12" path="res://ui/hud/action_button.gd" id="2_rdn6r"]
+
+[node name="Lobby" type="Control" unique_id=2018106578]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_l4sf2")
+
+[node name="Title" type="Label" parent="." unique_id=1642950038]
+layout_mode = 0
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -400.0
+offset_top = 150.0
+offset_right = 400.0
+offset_bottom = 220.0
+theme_override_font_sizes/font_size = 56
+text = "AHH  3v3"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="." unique_id=1467522895]
+layout_mode = 0
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -400.0
+offset_top = 232.0
+offset_right = 400.0
+offset_bottom = 268.0
+theme_override_font_sizes/font_size = 20
+text = "1 minute - the team with more survivors wins - level => 30s overtime"
+horizontal_alignment = 1
+
+[node name="Start" type="Control" parent="." unique_id=1856683215]
+anchors_preset = 0
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -130.0
+offset_top = 330.0
+offset_right = 130.0
+offset_bottom = 410.0
+script = ExtResource("2_rdn6r")
+label = "START"
+
+[node name="Host" type="Label" parent="." unique_id=1878619004]
+layout_mode = 0
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -400.0
+offset_top = 480.0
+offset_right = 400.0
+offset_bottom = 520.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 16
+text = "local match: 2 AI teammates vs 3 AI opponents"
+horizontal_alignment = 1

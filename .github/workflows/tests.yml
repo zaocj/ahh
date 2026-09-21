@@ -1,0 +1,44 @@
+# Runs the regression suites (tests/) on every push and pull request.
+#
+# The version is pinned to the one the project targets (project.godot:
+# config/features "4.7", locally Godot 4.7.2-stable) because the ability plugin is
+# version sensitive. Asset name verified against
+# https://github.com/godotengine/godot/releases/tag/4.7.2-stable
+name: tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  GODOT_VERSION: "4.7.2"
+
+jobs:
+  suites:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The gameplay ability system is a git submodule: without it the project
+          # has no skill system at all (autoloads point into it).
+          submodules: recursive
+
+      - name: Install Godot
+        run: |
+          set -euo pipefail
+          curl -fsSL -o /tmp/godot.zip \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo install -m 0755 "/tmp/Godot_v${GODOT_VERSION}-stable_linux.x86_64" /usr/local/bin/godot
+          godot --headless --version
+
+      # A fresh clone has no .godot/ at all: the import pass builds the resource
+      # caches (imported textures, script classes, uids) the suites need.
+      - name: Import project
+        run: godot --headless --path . --import
+
+      - name: Run suites
+        env:
+          GODOT: /usr/local/bin/godot
+        run: ./tests/run.sh

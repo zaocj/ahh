@@ -9,11 +9,9 @@ extends Node
 @export var number_scene: PackedScene
 ## Random sidestep range, so several hits in the same instant stay readable.
 @export var jitter: Vector2 = Vector2(14.0, 6.0)
-## Hits on the player read differently from hits the player deals.
-@export var player_color: Color = Color(1.0, 0.42, 0.42)
-@export var enemy_color: Color = Color(1.0, 0.9, 0.5)
-## Group that counts as "the player" for colouring.
-@export var player_group: StringName = &"players"
+## Colour follows the victim's team (the single source of team colours), brightened
+## so the number stays readable on the dark arena.
+@export var team_tint: float = 0.28
 
 var _jitter_rng := RandomNumberGenerator.new()
 
@@ -30,7 +28,14 @@ func _on_damaged(victim: Node2D, amount: float, _source: Node) -> void:
 	add_child(number)
 	# Health bars sit ~30px above the body (Player/Enemy BAR_OFFSET): start above them.
 	number.global_position = victim.global_position + Vector2(0.0, -38.0)
-	number.setup(amount, player_color if victim.is_in_group(player_group) else enemy_color,
+	number.setup(amount, _color_for(victim),
 		Vector2(
 			_jitter_rng.randf_range(-jitter.x, jitter.x),
 			_jitter_rng.randf_range(-jitter.y, jitter.y)))
+
+## Damage dealt to a unit is tinted by *its* team, so a 3v3 reads at a glance.
+func _color_for(victim: Node) -> Color:
+	var team := Teams.team_of(victim)
+	if team < 0:
+		return Color(1.0, 0.92, 0.55)
+	return Teams.color_of(team).lightened(team_tint)

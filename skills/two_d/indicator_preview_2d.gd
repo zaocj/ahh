@@ -189,7 +189,7 @@ func _default_target_position() -> Vector2:
 	if not is_instance_valid(_caster):
 		return Vector2.ZERO
 	if targeting == Targeting.POSITION and default_aim == DefaultAim.TO_TARGET:
-		var offset := Targets.offset_to_nearest(_caster, target_group)
+		var offset := Targets.offset_to_nearest(_caster, _target_group())
 		if offset != Vector2.ZERO:
 			return _clamp_to_range(_caster.global_position + offset)
 	return _clamp_to_range(_caster.global_position + _default_direction() * max_range)
@@ -226,11 +226,19 @@ func _refresh_indicator() -> void:
 func _default_direction() -> Vector2:
 	if default_aim == DefaultAim.FACING or _caster == null:
 		return _caster_facing()
-	var offset := Targets.offset_to_nearest(_caster, target_group)
+	var offset := Targets.offset_to_nearest(_caster, _target_group())
 	if offset == Vector2.ZERO:
 		return _caster_facing()
 	var towards := offset.normalized()
 	return towards if default_aim == DefaultAim.TO_TARGET else -towards
+
+## Auto-aim looks for the other *team* whenever the caster has one, which is what
+## lets teammates and opponents share one set of skill data; `target_group` stays as
+## the fallback for casters without a team (dummies, tests).
+func _target_group() -> StringName:
+	if _caster != null and _caster.has_method("hostile_group"):
+		return _caster.call("hostile_group")
+	return target_group
 
 func _caster_facing() -> Vector2:
 	if _caster != null and "facing" in _caster:

@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="SpawnLayout" format=3 uid="uid://ei3idhlytdjm"]
+
+[ext_resource type="Script" uid="uid://bhwklv45i0vio" path="res://core/battle/spawn_layout.gd" id="1_a1p20"]
+
+[resource]
+script = ExtResource("1_a1p20")
+blue_points = Array[Vector2]([Vector2(80, 208), Vector2(80, 368), Vector2(80, 496)])
+red_points = Array[Vector2]([Vector2(1200, 208), Vector2(1200, 368), Vector2(1200, 496)])

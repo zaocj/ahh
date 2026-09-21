@@ -20,18 +20,18 @@
 | `addons/godot_ability_system/` | **技能系统插件（git 子模块**，MIT，pin 在 `a360f40`，[LiGameAcademy/godot_ability_system](https://github.com/LiGameAcademy/godot_ability_system)）。技能定义/特性/冷却/行为树/属性/血条 vital/效果/状态/标签/伤害计算都在这里。**不要改子模块里的文件**（升级会冲突），要扩展就在 `skills/two_d/` 里继承它的类。它是**3D-first**的（见下方"技能系统"） | 有内容（子模块） |
 | `assets/textures/` | 共享原始素材。现有 `terrain_atlas.png` = 程序化生成的 4 格图集（地面 / 地面变体 / 墙 / 地台） | 有内容 |
 | `assets/audio/` | 占位音效（`hit` / `player_hit` / `shoot` / `dash` / `death` / `win` / `lose` / `tick`，8 个短 wav，**程序化合成的占位**，直接换文件即可）。`assets/fonts/` 仍空 | 有内容 |
-| `core/battle/` | 战斗编排。现有 `match_director.gd`（`MatchDirector`：READY 倒计时 → PLAYING 计时 → FINISHED 结算，用 `get_tree().paused` 冻结世界，胜负判定见下方“对局流程”） | 有内容 |
+| `core/battle/` | 战斗编排：`match_director.gd`（3v3 流程：spawn → READY → PLAYING → **OVERTIME** → FINISHED，按队伍数存活人数判定，见“3v3 对局”）、`teams.gd`（敌我判定）、`match_stats.gd`（击杀/伤害计分）、`team_roster.gd` + `heroes/roster.tres`（谁上场）、`spawn_layout.gd` + `maps/arena_01/spawns.tres`（出生点数据）、`match_config.gd`（选人界面传给对局场景的静态持有者） | 有内容 |
 | `core/network/` | 联网（同步、房间、消息） | 空（占位） |
-| `core/events/` | 全局事件总线。现有 `combat_events.gd`（autoload `CombatEvents`：`damaged` / `died` / `ability_cast` / `match_finished`）。**玩法只 report，表现只 subscribe**（见下方“命中反馈”） | 有内容 |
+| `core/events/` | 全局事件总线（autoload `CombatEvents`）。`combat_events.gd`（autoload `CombatEvents`：`damaged` / `died` / `ability_cast` / `match_finished`）。**玩法只 report，表现只 subscribe**（见下方“命中反馈”） | 有内容 |
 | `core/utils/` | 跨功能工具函数。现有 `targets.gd`（`Targets.nearest()` / `offset_to_nearest()`：按 group 找最近目标，技能自动瞄准与敌人追击共用） | 有内容 |
-| `entities/base/` | 可复用实体基类 | 空（占位，血量改用插件的 vital） |
+| `entities/base/` | **可复用战斗单位**：`unit.gd` + `unit.tscn` + `unit_shape.tres` + `unit_camera.gd`。**一份预制被 3v3 的每个座位实例化 6 次**（原来是 `entities/player/` + `entities/enemy/` 两份，2026-09 已合并），队伍/操作者（人 / AI）/英雄都是数据（`team` / `controller` / `hero`）。`unit_camera.gd` 是*全队共用的一台相机*（跟着本地玩家，死后跟队友），不是每个单位一台 | 有内容 |
 | `entities/player/` | **玩家**：`player.gd` + `player.tscn` + `player_shape.tres`（`facing` / `dash()` / `is_dashing()`，group `players`） | 有内容 |
 | `entities/projectile/` | **投射物**：`projectile.gd` + `projectile.tscn` + `projectile_shape.tres`（匀速直飞，撞墙/打到实体/飞满 `max_distance` 自毁） | 有内容 |
-| `entities/enemy/` | **敌人**：`enemy.gd` + `enemy.tscn` + `enemy_shape.tres`（追 `target_group` 里最近的目标，到 `stop_distance` 停下；自带 `Health` 与血条；也**会用技能**：`enemy.tscn` 上挂了插件 `GameplayAbilityComponent`（`Abilities`）+ `AiAbilityRouter`（`AiRouter`），loadout = `skills/data/enemy/loadout.tres`） | 有内容 |
+| `heroes/<hero>/` | **一个英雄一个目录**，里面只有数据：`<hero>_data.tres`（`HeroData`：显示名 / 颜色 / 描述 / 签名技能名 / `loadout` / `stats`）。5 个英雄 = 原来的 5 个技能（`gunner` Shot、`frost` Frost、`bomber` Bomb、`sigil` Sigil、`medic` Heal），每人再加一个通用 `dash`。英雄**不是**预制也不是脚本：单位预制共用，英雄只是数据（`heroes/base/hero_data.gd`）。`heroes/roster.tres`（`TeamRoster`）决定哪 3 个上蓝队 / 红队、以及选人界面展示哪 5 个 | 有内容 |
 | `entities/hitbox/` | 命中判定盒 | 空（占位） |
 | `entities/pickup/` | 拾取物（能量块、补给） | 空（占位） |
-| `heroes/base/` | 英雄基类（hero.gd / hero.tscn / hero_data.tres） | 空（占位） |
-| `heroes/<hero>/` | **一个英雄一个自包含目录**：`<hero>.gd` `<hero>.tscn` `<hero>_data.tres` 图标/立绘、以及该英雄专属 `skills/` | 空（占位：`warrior/` `ranger/` `assassin/`） |
+| `core/battle/teams.gd` | **唯一的敌我判定**（`Teams.Id` / `is_hostile` / `can_damage` / `group_of` / `enemy_group_of` / `color_of`）。投射物与法阵都问它，技能数据里不再手填 `target_group` | 有内容 |
+
 | `skills/two_d/` | **插件的 2D 适配层**（插件本体在 3D 侧，2D 项目必须自己补）：`indicator_preview_2d.gd`（2D 瞄准指示器 + 默认朝向）、`ability_node_spawn_projectile_2d.gd`（行为树节点：发射 2D 投射物）、`projectile_data_2d.gd`、`ge_dash_2d.gd`（2D 位移效果）、`flat_damage_logic.gd`（固定伤害策略）、`ability_input_router.gd`（按钮 → 插件生命周期，玩家用）、`ai_ability_router.gd`（AI → 插件生命周期，敌人用）、`ability_loadout_2d.gd` / `stat_block_2d.gd`（把数组型配置塞进 `.tres`）、`skill_indicator.gd` + `skill_indicator_data.gd`（2D 指示器绘制） | 有内容 |
 | `skills/data/shared/tags/` | 项目的**标签词表**（`GameplayTag` 资源：`status.frozen` / `state.frozen` …）。插件 TagManager 只认得被注册过的标签，未注册的 `add_tag` 会警告并静默失败 → `main.gd` 启动时 `TagManager.initialize("res://skills/data/shared/tags/")`。**故意不带 `parent_tag_id`**，见坑 17 | 有内容 |
 | `skills/data/enemy/<skill>/` | **敌人技能数据**（和玩家技能同一套格式，但**不配预览策略**）：`bolt.tres`（ProjectileData2D，`target_group = players`）+ `bolt_skill.tres`；`skills/data/enemy/loadout.tres` 是敌人的技能栏 | 有内容（`bolt/`） |
@@ -41,8 +41,9 @@
 | `maps/arena_01/` | **一张地图一个目录**：`arena_01.tscn`（根 `Arena01` + 子 `Terrain` TileMapLayer）、`arena_01_tileset.tres`、`terrain.gd`（按 ASCII 地图刷格） | 有内容 |
 | `ui/hud/` | 局内 HUD。现有 `virtual_joystick.gd`（触摸/鼠标摇杆）、`skill_button.gd`（技能按钮：短按直接施放，长按/拖动瞄准） | 有内容 |
 | `ui/battle/` | 对局内界面与反馈。现有 `result_overlay.gd/.tscn`（结算面板：标题 + 原因 + Rematch；`PROCESS_MODE_ALWAYS`，因为在世界暂停时也要能点）、`damage_number.gd/.tscn` + `damage_numbers.gd`（伤害飘字与其订阅者）、`combat_sfx.gd`（音效订阅者 + 声音池） | 有内容 |
-| `ui/lobby/` | 大厅 / 主菜单 | 空（占位） |
-| `ui/hero_select/` | 选英雄界面 | 空（占位） |
+| `tests/` | **回归断言套件（受版本管理）**：`verify_match.gd/.tscn`（37 条对局闭环）、`verify_indicator.gd/.tscn`（30 条指示器/瞄准/多施法者）、`verify_feedback.gd/.tscn`（19 条飘字/闪白/震屏/音效）、`verify_grenade.gd/.tscn`（18 条手雷）、`shots_grenade.gd/.tscn`（截图脚本）、`run.sh`（一键跑全部）。**这是唯一一个破例新增的顶层目录**——以前这类套件放在 `.godot/` 里，被 gitignore 且会被缓存清理删掉（原 32 条套件就是这样丢了） | 有内容 |
+| `ui/lobby/` | **开始界面**（`lobby.tscn/.gd`）：标题 + 赛制说明 + START → 选人界面。**它是 `project.godot` 的 main scene** | 有内容 |
+| `ui/hero_select/` | **选人界面**（`hero_select.tscn/.gd` 根 + `hero_cards.gd` 五张卡）：点卡片选中、START MATCH 开始 3v3；选择通过 `MatchConfig.selected_hero` 传给对局场景 | 有内容 |
 | `main/` | **装配根**：`main.tscn` + `main.gd`（实例化玩家与地图、接线摇杆、HUD 状态） | 有内容 |
 | 根目录 | `project.godot`（输入映射 / 主场景 / 渲染设置）、`export_presets.cfg`（Android 预设）、`icon.svg`、`.vscode/` | — |
 
@@ -54,23 +55,35 @@
 ## 现有内容怎么协作
 
 ```
+ui/lobby/lobby.tscn  Lobby (Control)      ← project.godot 的 main scene：START
+  └─ START → ui/hero_select/hero_select.tscn  HeroSelect
+       ├─ Cards  (HeroCards：5 张英雄卡，程序化绘制 + 命中测试)
+       ├─ Start  (ActionButton) → MatchConfig.selected_hero = 选中英雄 → change_scene
+       └─ Back   → 回大厅
+
 main/main.tscn        Main (Node2D, y_sort_enabled)
-                      ├── HUD (CanvasLayer) → Status (Label, 左下帮助行) + Timer (Label, 局中时钟)
-                      │                    → Announce (Label, 3-2-1-GO) + ResultOverlay (实例: ui/battle/result_overlay.tscn)
-                      │                    → Joystick (Control, virtual_joystick.gd)
-                      │                    → SkillBullet / SkillDash (Control, skill_button.gd)
-                      │                    → DrawerToggle / SkillDrawer（换技能用的调试 UI）
-                      ├── Player   ← 实例：entities/player/player.tscn（position 覆盖为出生点 656,368，group: players）
-                      │   ├── Abilities  (GameplayAbilityComponent，插件)
-                      │   └── InputRouter (AbilityInputRouter：按钮 → 插件施放流程)
-                      ├── Arena01  ← 实例：maps/arena_01/arena_01.tscn → Terrain (TileMapLayer)
-                      ├── Enemy    ← 实例：entities/enemy/enemy.tscn（position 830,260，stop_distance 200）
-                      │   ├── Abilities  (GameplayAbilityComponent，插件)
-                      │   └── AiRouter   (AiAbilityRouter：AI → 插件施放流程)
-                      ├── MatchDirector (Node, core/battle/match_director.gd；必须是最后一个子节点)
-                      ├── DamageNumbers  (Node, ui/battle/damage_numbers.gd：飘字订阅者)
-                      └── CombatSfx      (Node, ui/battle/combat_sfx.gd：音效订阅者)
+                      ├── HUD (CanvasLayer) → Status (左下提示) + Timer (局中时钟) + Score (存活人数 "3 : 3")
+                      │                    → Announce (3-2-1-GO / +30s OVERTIME) + ResultOverlay (结算+计分板)
+                      │                    → Joystick (virtual_joystick.gd) + SkillBullet / SkillDash (skill_button.gd)
+                      ├── Arena01  ← maps/arena_01/arena_01.tscn → Terrain (TileMapLayer, z_index -10)
+                      ├── Camera   (UnitCamera：全场唯一相机，跟 `MatchDirector.watched_unit`)
+                      ├── MatchDirector (core/battle/match_director.gd)  ← 生成 6 个单位、跑流程、计分
+                      ├── DamageNumbers (ui/battle/damage_numbers.gd：飘字订阅者)
+                      └── CombatSfx     (ui/battle/combat_sfx.gd：音效订阅者)
+
+运行时由 MatchDirector 生成（`entities/base/unit.tscn` × 6，`get_parent().add_child`）：
+  Player    蓝队 0 号位 = 本地玩家（人控，带 InputRouter）
+  BlueBot1/2  蓝队 AI 队友（带 AiRouter）
+  RedBot0/1/2 红队 AI（带 AiRouter）
 ```
+
+- **3v3 对局**（`MatchDirector`）：3 人 vs 3 人、**不复活**；1 分钟到 → **存活人数多的一方胜**；人数相同 → **加时 30s**，加时里**先掉人的一方输**，加时结束仍相同 → 平局；任意时刻一方被团灭立即结束。`READY` / `FINISHED` 用 `get_tree().paused` 冻结世界（director 自己 `PROCESS_MODE_ALWAYS`），所以**不需要任何锁输入代码**。
+  本地玩家阵亡**不会**结束对局（队友还在），相机自动切到活着的队友（`spectate_changed` → `main.gd` 把 `UnitCamera.follow` 换人）；全队阵亡 = 输。
+- **团队与敌我**：每个单位有 `team`（`Teams.Id.BLUE / RED`）并加入 `team_blue` / `team_red`（本地玩家额外加入 `players`，相机/HUD/"我被打了"的音效靠它）。**谁能打谁只有一处规则**：`Teams.can_damage(source, target)`（投射物、法阵、AI 目标搜索都问它）——技能数据里的 `target_group` 只是"没有队伍归属的来源"（地形、测试）的兜底。
+- **单位**（`entities/base/unit.gd`）：移动（键盘/摇杆 或 AI 追击）、`dash()`、`facing`、血条（队伍色）、闪白、冻结（`is_frozen()`）、死亡（停止碰撞 + 退出队伍 group，但**节点保留**，因为计分板和相机还引用它）。`controller = HUMAN/AI` 决定移动来源；`hero` 决定外观/属性/技能栏。
+- **英雄**：`HeroData` 资源（数据，不是脚本/预制）。`loadout.abilities = [签名技能, dash]`。选人界面把选择写进 `MatchConfig.selected_hero`，`MatchDirector._spawn_units()` 用它替换蓝队 0 号位；没有选择时（测试、直接 F5）用 `heroes/roster.tres` 里 `blue[0]`。**加一个英雄 = 在 `generate_ability_data.gd` 的 `_generate_heroes()` 里加一行 + 加进 `selectable`**，跑一次生成器。
+- **出生点**：`maps/arena_01/spawns.tres`（`SpawnLayout`）由生成器**从竞技场 ASCII 地图里自动挑可走格**（左右两侧各 3 个，按高度分散），所以改地图后重跑生成器即可；`tests/verify_3v3.gd` 断言每个点都在地板格上。
+- **计分板**：`MatchStats`（`core/battle/`）订阅 `CombatEvents` 记每人的击杀与伤害（按队伍过滤，友伤不计），`ui/battle/result_overlay.gd` 渲染成 HERO / KILLS / DAMAGE 三列 + 队伍色块 + `(you)` + `- down`。
 
 - **对局流程**（`MatchDirector`，`core/battle/`）：`READY`（3-2-1-GO，`get_tree().paused = true` 冻结世界 → 期间**不需要**任何“锁输入”代码）→ `PLAYING`（60s 计时）→ `FINISHED`（再次暂停，发 `finished`，`ui/battle/result_overlay.tscn` 弹出，Rematch 走 `director.restart()` → `reload_current_scene()`）。
   胜负：**玩家阵亡 → 敌方胜**；**敌人全灭 → 玩家胜**；同一帧双方都死 → 平局；**60s 到 → 比剩余血量比例**（玩家 vs 敌人平均，差值 ≤5% 算平局）。玩家死亡**不销毁节点**（相机挂在玩家身上），只是变灰、停手、`is_alive()` 变 false。
@@ -146,6 +159,11 @@ main/main.tscn        Main (Node2D, y_sort_enabled)
 22. **预览策略只在 `update()` 里刷新，所以 `release` 前必须把当前拖动推给它**。`ability_input_router.release()` 会先调 `drag()`（那只更新 router 自己的 `_aim_direction`），然后 `confirm_targeting()`；而策略里的 `_target_position` / `_direction` 只在 `update()`（由 router 每帧的 `_process` 调用）里重算 —— 同一帧内"拖动 + 松开"会确认**上一帧的**瞄准（表现：快速甩一下，手雷落在旧位置或默认落点）。修法：`release()` 里先 `_component.update_targeting(0.0, {"aim_direction": _aim_direction})` 再 confirm。凡是在 `update()` 里缓存状态的 strategy 都有这个坑。
 23. **投掷物有两种"到达方式"**：直线的（命中身体即停，`lob = false`）和抛掷的（`ProjectileData2D.lob = true`：飞越身体与墙、按 `max_distance` 落地才炸，`_body` 用正弦包络做假抛物线 + 自旋）。投射物节点用 `target_position_key` 把"落点"换算成方向 + 距离，所以"扔到指定坐标"不需要新脚本。注意 `lob` 的落点不做墙体检测：落点可能在墙里（目前接受，后续要加就把落点夹到可行走格）。
 
+24. **子节点不能在父节点"正在装配子节点"时往父节点加东西**：`MatchDirector._ready()` 里 `get_parent().add_child(unit)` 会报 `Parent node is busy setting up children`（director 的 `_ready` 正是在 Main 装配自己的过程中被调用的）。修法：`_spawn_and_start.call_deferred()`（下一帧再生成），并发出 `units_ready` 让 HUD/相机在那时绑定。同一个坑在测试里也踩过（在 `_ready` 里往 `root` 加场景也会失败）。
+25. **`Camera2D` 一旦离开场景树就会自己 `enabled = false`**，所以"把相机 reparent 到另一个单位"这种观战写法会得到一个不会再渲染的相机（`make_current()` 也救不回来，甚至没有报错）。本项目改成**一台常驻相机 + 跟随目标**（`UnitCamera.follow`，`setup()` 换人），换视角就变成一次赋值。
+26. **脚本被 host 工具改过之后，编辑器的内存里还是旧版本**：`editor_transaction` 会在 `assign_resource`/`set_properties` 时报 `resource_or_property_invalid` / `property_not_found`（因为新属性在编辑器的旧脚本里不存在），改写过的场景用新类也可能 `node_not_found`。修法：改完脚本重启编辑器会话（`pkill` 掉编辑器 + `editor_session ensure launchIfNeeded=true`），它会重新扫描；**别急着怀疑资源路径**。（另：`add_node` 的 properties 只放布局，`attach_script` 单独一次事务，见坑 18。）
+27. **3v3 的出生行有墙**：蓝队出生点在第 5/8/11 行（左侧 cols 2），红队在右侧 col 37，而地图第 5-6 行 cols 6-11 是墙。测试里把两个单位放在出生行对射会被墙挡住（表现是"对手打不到我"），所以 `verify_match` / `verify_3v3` 的射击断言都先把单位挪到**第 11 行那条开阔通道**（y = 368）。
+
 ## 常用命令
 
 ```bash
@@ -165,26 +183,19 @@ PROJ=/Users/zhaojie/godot_project/ahh
 # 会覆盖同名 .tres，之后数值改在编辑器里改
 "$GODOT" --headless --path "$PROJ" res://skills/data/build/generate_ability_data.tscn
 
-# 技能系统断言套件（32 条；同样必须当场景跑）
-# 注意：res://.godot/verify_abilities.tscn 已经不在了（.godot/ 是缓存目录，会被重新生成）——需要就重写
-# "$GODOT" --headless --path "$PROJ" --fixed-fps 60 res://.godot/verify_abilities.tscn
-
-# 指示器生命周期断言套件（30 条：触摸/鼠标事件顺序、不残留、拖动/单击的瞄准方向、切换槽位、equip、两个施法者互不干扰）
-# 临时件，同样放在 .godot/ 下；headless 会丢掉 Input.parse_input_event 事件，所以那次跑会 SKIP 2 条
-"$GODOT" --path "$PROJ" --fixed-fps 60 res://.godot/verify_indicator.tscn            # 30/30，exit 0
-"$GODOT" --headless --path "$PROJ" --fixed-fps 60 res://.godot/verify_indicator.tscn # 28/28 + 2 SKIP，exit 0
-
-# 命中反馈断言套件（19 条：飘字生成/数值/位置/自毁、闪白、震屏加与衰减、音效路由与音效真的在播）
-"$GODOT" --headless --path "$PROJ" --fixed-fps 60 res://.godot/verify_feedback.tscn   # 19/19，exit 0
-
-# 手雷断言套件（18 条：射程环/落点圆、拖动长度=投掷距离、夹到射程内、落点=瞄准点、25 伤害、飞越身体不提前爆、冷却、地面贴花层级）
-"$GODOT" --headless --path "$PROJ" --fixed-fps 60 res://.godot/verify_grenade.tscn     # 18/18，exit 0
+# 全部回归套件（125 条：对局闭环 35 / 指示器 30 / 命中反馈 19 / 手雷 17 / 3v3 团队 24）
+# 套件必须当场景跑（见坑 12）。headless 会丢掉 Input.parse_input_event，所以那两
+# 条会 SKIP（102/102）；要拿满 104 条用 --windowed。
+./tests/run.sh                 # headless：123/123 + 2 SKIP，exit 0
+./tests/run.sh --windowed      # 完整 125/125，exit 0
+# 单跑某套（调试时用）：
+"$GODOT" --headless --path "$PROJ" --fixed-fps 60 res://tests/verify_3v3.tscn       # 24/24
 
 # 截图脚本（windowed）：/tmp/grenade_aim.png（射程环 + 落点圆）、/tmp/grenade_blast.png（爆炸 + 25 飘字）
-"$GODOT" --path "$PROJ" --fixed-fps 60 res://.godot/shots_grenade.tscn
+"$GODOT" --path "$PROJ" --fixed-fps 60 res://tests/shots_grenade.tscn   # 手雷瞄准/爆炸
+"$GODOT" --path "$PROJ" --fixed-fps 60 res://tests/shots_result.tscn    # /tmp/result.png：结算 + 计分板
 
-# 对局闭环断言套件（37 条：倒计时/计时/被攻击/胜负/超时判定/结算/Rematch/冰冻沉默/标签库）
-"$GODOT" --headless --path "$PROJ" --fixed-fps 60 res://.godot/verify_match.tscn     # 37/37，exit 0
+# CI：.github/workflows/tests.yml（每次 push/PR：装 Godot 4.7.2 + `--import` + ./tests/run.sh）
 
 # 子模块
 git submodule update --init --recursive
@@ -201,14 +212,18 @@ export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
 
 ## 验证状态（截至本文件编写时）
 
+- 已验证（3v3 团队层，`tests/verify_3v3.tscn` **24/24**）：花名册 5 个英雄各有签名技能 + 通用 dash；每侧 3 个出生点且**都在可走地板格**（读竞技场 ASCII 图验证）、两侧间隔 > 400px；6 个单位各属一个队伍 group；**同队不敌对、异队敌对**（`Teams.*`）；队友的投射物穿过玩家**不掉血**、对手的投射物掉血；队友的法阵**不 tick 玩家**（即使数据里写的是旧 `target_group = enemies`）；计分板每人一行、伤害/击杀按队伍过滤、本地玩家行带 `human` 标记、按伤害排序
+- 已验证（3v3 对局，`tests/verify_match.tscn` **35/35**）：开局 spawn 3v3（1 人 + 5 AI）、READY 冻结、时钟 1:00、比分 3:3；敌人真的打到玩家；**只死本地玩家时对局继续**、相机切到活着的队友；团灭红队 → `YOU WIN` + 结算 + 计分板 6 行；Rematch 重开并复活 6 人；**平分到点 → 加时 30s → 加时里先掉人方输**（reason 写明 Overtime）；frost 冻住 bot → `is_silenced()` 为真
+- 已验证（视觉）：大厅（START）→ 选人（5 张英雄卡、选中高亮）→ 3v3 实战（比分 `3 : 3`、法阵 tick 8/5 飘字）→ 结算（`YOU WIN` + HERO/KILLS/DAMAGE 三列，Bomber (you) 3 杀 250 伤害，红队三行 `- down`）；截图脚本 `tests/shots_result.gd` → `/tmp/result.png`
 - 已验证（插件链路，场景断言套件 `.godot/verify_abilities.tscn` **32 条全过**）：加载后玩家学到 `shot`/`dash` 两个技能；敌人经插件 vital 初始化到 100/100；点击 shot → 出 2D 指示器且**默认指向最近敌人** → 松手发射 → 子弹带插件伤害效果 → 命中敌人**准确扣 10 血** → 冷却经 `CooldownFeature` 拦住第二次施放 → 冷却结束恢复；dash → 指示器指向敌人**反方向** → 位移正好 168px 且远离敌人；触摸取消不留指示器也不施放；十发把敌人打死并自毁
   （注：该场景已不在仓库里，见常用命令的说明）
-- 已验证（对局闭环，`.godot/verify_match.tscn` **37 条全过**，windowed/headless 都过）：开局停在 READY 且世界暂停、倒计时播报、时钟 1:00；倒计时结束自动进入 PLAYING 且时钟递减；**敌人主动射击→子弹命中玩家→一次固定扣 10 血（1.00→0.90）**，且不误伤同类；敌人全灭 → `YOU WIN` + 结算面板 + 世界冻结；Rematch 重载场景回到 READY 并恢满血；60s 到 → 按剩余血量比例判胜负（差 ≤ 5% 平局）；玩家阵亡 → `YOU LOSE`，玩家节点保留（相机），死亡后无法起预览/施放；frost 命中敌人 → `is_silenced()` 为真且敌人真的停火；标签库已注册（`TagManager.get_tag_resource(&"state.frozen") != null`）
-- 已验证（指示器生命周期，`.godot/verify_indicator.tscn`）：windowed **30/30**（含引擎真实触摸路径、瞄准方向、两个施法者互不干扰），headless **28/28 + 2 SKIP**（headless 会丢弃 `Input.parse_input_event`）。两个历史对照：指示器残留 bug 未修时该套件只能过 3/20（一次触摸出 2 个指示器并累积不清）；共享 strategy（坑 21）未修时 “two casters” 段挂 6 条
-- 已验证（视觉）：自动瞄准的箭头指示器、飞行中的子弹、敌人血条随插件伤害变短、按钮冷却扇形 —— 截图脚本 `.godot/shots_abilities.gd`（往 `/tmp/ab_*.png` 写图）；本轮的 READY（倒计时 + `GO!`）、PLAYING（时钟 + 指示器）、结算面板（`YOU LOSE` + Rematch）都已用 `game_screenshot` 看过
+- 已验证（对局闭环，`tests/verify_match.tscn` **37 条全过**，windowed/headless 都过）：开局停在 READY 且世界暂停、倒计时播报、时钟 1:00；倒计时结束自动进入 PLAYING 且时钟递减；**敌人主动射击→子弹命中玩家→一次固定扣 10 血（1.00→0.90）**，且不误伤同类；敌人全灭 → `YOU WIN` + 结算面板 + 世界冻结；Rematch 重载场景回到 READY 并恢满血；60s 到 → 按剩余血量比例判胜负（差 ≤ 5% 平局）；玩家阵亡 → `YOU LOSE`，玩家节点保留（相机），死亡后无法起预览/施放；frost 命中敌人 → `is_silenced()` 为真且敌人真的停火；标签库已注册（`TagManager.get_tag_resource(&"state.frozen") != null`）
+- 已验证（指示器生命周期，`tests/verify_indicator.tscn`）：windowed **30/30**（含引擎真实触摸路径、瞄准方向、两个施法者互不干扰），headless **28/28 + 2 SKIP**（headless 会丢弃 `Input.parse_input_event`）。两个历史对照：指示器残留 bug 未修时该套件只能过 3/20（一次触摸出 2 个指示器并累积不清）；共享 strategy（坑 21）未修时 “two casters” 段挂 6 条
+- 已验证（视觉）：自动瞄准的箭头指示器、飞行中的子弹、敌人血条随插件伤害变短、按钮冷却扇形 —— 截图脚本 `tests/shots_grenade.gd`（往 `/tmp/grenade_*.png` 写图）；本轮的 READY（倒计时 + `GO!`）、PLAYING（时钟 + 指示器）、结算面板（`YOU LOSE` + Rematch）都已用 `game_screenshot` 看过
 - 已验证（真人实战）： `run_project` 开的窗口里手工玩了一局：被敌人打死 → 结算 `YOU LOSE` → Rematch → 新一局 READY，控制台 0 error（只有插件的 info 输出）
-- 已验证（命中反馈，`.godot/verify_feedback.tscn` **19/19**，windowed/headless 都过）：一次命中生成 1 个飘字、数值=实际伤害、位置在血条之上、约 0.75s 自毁；命中瞬间身体变白再回落；被击中 → trauma 上升 → `Camera2D.offset` 偏移 → 约 1s 后精确归零；敌人中弹播 `hit.wav`、玩家中弹播 `player_hit.wav`（更响更低）、施放播 `shoot.wav`、死亡播 `death.wav`、结算播 `win/lose`；只施放不产生飘字。真机外实测：真实窗口里 `game_get_audio` 在施放后立刻看到 2 路 `playing: true`，截图看到玩家头顶红色 `10`
-- 已验证（手雷，`.godot/verify_grenade.tscn` **18/18**，windowed/headless 都过）：瞄准时同时出现"射程环（跟随施法者）"和"落点圆"；点一下落点圆直接压在最近敌人身上；拖动 25% 射程的像素 → 落点圆落在 25% 射程处；拖过头被夹在射程边缘；松手后**爆炸正好发生在瞄准点**；圆内目标掉正好 25 血（1.00→0.75）且**不伤投掷者**；飞越中间的身体不提前爆炸（敌人血量不变，爆炸在更远处）；2s 冷却内第二次施放被拦；**爆炸圆完整**（地面贴花 z_index 高于地形，见坑 8）；截图 `/tmp/grenade_aim.png`、`/tmp/grenade_blast.png`
+- 已验证（命中反馈，`tests/verify_feedback.tscn` **19/19**，windowed/headless 都过）：一次命中生成 1 个飘字、数值=实际伤害、位置在血条之上、约 0.75s 自毁；命中瞬间身体变白再回落；被击中 → trauma 上升 → `Camera2D.offset` 偏移 → 约 1s 后精确归零；敌人中弹播 `hit.wav`、玩家中弹播 `player_hit.wav`（更响更低）、施放播 `shoot.wav`、死亡播 `death.wav`、结算播 `win/lose`；只施放不产生飘字。真机外实测：真实窗口里 `game_get_audio` 在施放后立刻看到 2 路 `playing: true`，截图看到玩家头顶红色 `10`
+- 已验证（手雷，`tests/verify_grenade.tscn` **18/18**，windowed/headless 都过）：瞄准时同时出现"射程环（跟随施法者）"和"落点圆"；点一下落点圆直接压在最近敌人身上；拖动 25% 射程的像素 → 落点圆落在 25% 射程处；拖过头被夹在射程边缘；松手后**爆炸正好发生在瞄准点**；圆内目标掉正好 25 血（1.00→0.75）且**不伤投掷者**；飞越中间的身体不提前爆炸（敌人血量不变，爆炸在更远处）；2s 冷却内第二次施放被拦；**爆炸圆完整**（地面贴花 z_index 高于地形，见坑 8）；截图 `/tmp/grenade_aim.png`、`/tmp/grenade_blast.png`
+- 已验证（回归资产）：4 套断言 **104 条**都在受版本管理的 `tests/`（`./tests/run.sh` → headless 102/102 + 2 SKIP，`--windowed` → 104/104），CI 见 `.github/workflows/tests.yml`（装 Godot 4.7.2 + `--import` + 跑套件）。以前它们在 `.godot/` 里，已被缓存清理丢过一次
 - 未验证：真机/模拟器安装与运行、真实触摸（手指）路径、多人同步、多敌人（>1）时的胜负与手感（现在场上敌人固定是 main.tscn 里那一个，重开靠 `MatchDirector.restart()` 重载场景；没有生成器）
 
 > 本文件的技能章节（下方）是硬约束：**新技能 = 组合现有 Action/Effect + 参数 + 条件**，不要为每个技能写专门的脚本。

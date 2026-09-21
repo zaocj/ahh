@@ -11,18 +11,18 @@ config_version=5
 [application]
 
 config/name="ahh"
-run/main_scene="res://main/main.tscn"
+run/main_scene="res://ui/lobby/lobby.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
 
 [autoload]
 
 CombatEvents="*res://core/events/combat_events.gd"
-GameplayAbilitySystem="*res://addons/godot_ability_system/scripts/singletons/gameplay_ability_system.gd"
-DamageCalculator="*res://addons/godot_ability_system/scripts/singletons/damage_calculator.gd"
-TagManager="*res://addons/godot_ability_system/scripts/singletons/gameplay_tag_manager.gd"
-AbilityEventBus="*res://addons/godot_ability_system/scripts/singletons/ability_event_bus.gd"
-GameplayCueManager="*res://addons/godot_ability_system/scripts/singletons/gameplay_cue_manager.gd"
+GameplayAbilitySystem="*uid://u2lf4qtnkmft"
+DamageCalculator="*uid://b2jxgcjagrkdx"
+TagManager="*uid://crdi6238nttlg"
+AbilityEventBus="*uid://dly4cms3ynkwf"
+GameplayCueManager="*uid://b4t83autfu2j7"
 
 [display]
 
@@ -66,6 +66,8 @@ move_down={
 
 [rendering]
 
+# The arena's navy, so the lobby/hero-select screens do not flash a default grey.
+environment/defaults/default_clear_color=Color(0.09, 0.1, 0.14, 1)
 rendering_device/driver.windows="d3d12"
 renderer/rendering_method="mobile"
 textures/vram_compression/import_etc2_astc=true

@@ -77,7 +77,9 @@ func _process(_delta: float) -> void:
 	_elapsed += _delta
 	if _elapsed < initial_delay or is_silenced():
 		return
-	var target := Targets.nearest(_caster, target_group)
+	# The caster's own team decides who is a valid target (fallback: the exported
+	# group, for casters that have no team).
+	var target := Targets.nearest(_caster, _target_group())
 	if target == null:
 		return
 	var offset := target.global_position - _caster.global_position
@@ -111,6 +113,11 @@ func cast_at(offset: Vector2) -> bool:
 			ability_activated.emit(ability.ability_id)
 			return true
 	return false
+
+func _target_group() -> StringName:
+	if _caster != null and _caster.has_method("hostile_group"):
+		return _caster.call("hostile_group")
+	return target_group
 
 ## True while a status in `silence_statuses` is on the caster.
 func is_silenced() -> bool:

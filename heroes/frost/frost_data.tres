@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="HeroData" format=3]
+
+[ext_resource type="Script" path="res://addons/godot_ability_system/scripts/abilities/gameplay_ability_definition.gd" id="1_bi81e"]
+[ext_resource type="Resource" path="res://skills/data/player/frost/frost.tres" id="2_jt442"]
+[ext_resource type="Resource" path="res://skills/data/player/dash/dash.tres" id="3_xnlch"]
+[ext_resource type="Script" path="res://skills/two_d/ability_loadout_2d.gd" id="4_0qbja"]
+[ext_resource type="Script" path="res://heroes/base/hero_data.gd" id="5_0lo10"]
+[ext_resource type="Resource" path="res://skills/data/shared/vitals/player_stats.tres" id="6_sut3f"]
+
+[sub_resource type="Resource" id="Resource_6en1s"]
+script = ExtResource("4_0qbja")
+abilities = Array[ExtResource("1_bi81e")]([ExtResource("2_jt442"), ExtResource("3_xnlch")])
+inventory = Array[ExtResource("1_bi81e")]([ExtResource("2_jt442"), ExtResource("3_xnlch")])
+
+[resource]
+script = ExtResource("5_0lo10")
+hero_id = &"frost"
+display_name = "Frost"
+description = "Icy bolt: 5 damage and a 1.5s freeze (a frozen caster cannot shoot)."
+color = Color(0.55, 0.82, 1, 1)
+skill_name = "Frost"
+loadout = SubResource("Resource_6en1s")
+stats = ExtResource("6_sut3f")

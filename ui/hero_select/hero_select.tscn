@@ -1,0 +1,68 @@
+[gd_scene format=3 uid="uid://d2pig2gjnvjpl"]
+
+[ext_resource type="Script" uid="uid://ts3tjd5w3nyb" path="res://ui/hero_select/hero_select.gd" id="1_giacj"]
+[ext_resource type="Script" uid="uid://d38ars4nx488w" path="res://ui/hero_select/hero_cards.gd" id="2_si8cj"]
+[ext_resource type="Script" uid="uid://c2qhbehsusu12" path="res://ui/hud/action_button.gd" id="3_wcslk"]
+
+[node name="HeroSelect" type="Control" unique_id=1414980958]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_giacj")
+
+[node name="Title" type="Label" parent="." unique_id=687712315]
+layout_mode = 0
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -400.0
+offset_top = 40.0
+offset_right = 400.0
+offset_bottom = 92.0
+theme_override_font_sizes/font_size = 40
+text = "CHOOSE YOUR HERO"
+horizontal_alignment = 1
+
+[node name="Cards" type="Control" parent="." unique_id=1212890675]
+anchors_preset = 0
+offset_right = 200.0
+offset_bottom = 300.0
+script = ExtResource("2_si8cj")
+
+[node name="Status" type="Label" parent="." unique_id=943285280]
+layout_mode = 0
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -400.0
+offset_top = 482.0
+offset_right = 400.0
+offset_bottom = 512.0
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1
+
+[node name="Start" type="Control" parent="." unique_id=1588386751]
+anchors_preset = 0
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -230.0
+offset_top = -100.0
+offset_right = -20.0
+offset_bottom = -40.0
+script = ExtResource("3_wcslk")
+label = "START MATCH"
+button_color = Color(0.45, 0.9, 0.45, 1)
+
+[node name="Back" type="Control" parent="." unique_id=1396013493]
+anchors_preset = 0
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -100.0
+offset_right = 230.0
+offset_bottom = -40.0
+script = ExtResource("3_wcslk")
+label = "BACK"
